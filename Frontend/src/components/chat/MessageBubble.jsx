@@ -111,6 +111,7 @@ const MessageBubble = ({
   const [showReactions, setShowReactions] = useState(false);
   const [viewOnceModal, setViewOnceModal] = useState(false);
   const [imageModal, setImageModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const isSender = (message.sender?._id || message.sender).toString() === (currentUser._id || currentUser).toString();
   const isGroup = selectedChat?.isGroup;
@@ -323,63 +324,15 @@ const MessageBubble = ({
         </div>
       </div>
 
-      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center self-center">
+      <div className="opacity-80 sm:opacity-0 group-hover:opacity-100 transition-opacity flex items-center self-center">
         <div className="relative">
           <button
-            onClick={() => setShowMenu(!showMenu)}
-            className="p-1 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors"
+            onClick={() => setShowDeleteModal(true)}
+            className="p-1.5 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors"
+            title="Message options & delete"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
-
-          {showMenu && (
-            <div className="absolute right-0 bottom-6 z-20 w-44 bg-slate-900 border border-slate-800 rounded-xl shadow-xl p-1 text-xs text-slate-300 backdrop-blur-md">
-              {onReply && (
-                <button
-                  onClick={() => {
-                    onReply(message);
-                    setShowMenu(false);
-                  }}
-                  className="w-full text-left px-3 py-1.5 hover:bg-slate-800 rounded-lg text-slate-300 hover:text-white flex items-center gap-2 transition-colors"
-                >
-                  <Reply className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Reply</span>
-                </button>
-              )}
-              {onStarToggle && (
-                <button
-                  onClick={() => {
-                    onStarToggle(message._id);
-                    setShowMenu(false);
-                  }}
-                  className="w-full text-left px-3 py-1.5 hover:bg-slate-800 rounded-lg text-amber-400 hover:text-amber-300 flex items-center gap-2 transition-colors"
-                >
-                  <Star className="w-3.5 h-3.5 fill-current" />
-                  <span>{isStarred ? 'Unstar' : 'Star message'}</span>
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  onDeleteForMe(message._id);
-                  setShowMenu(false);
-                }}
-                className="w-full text-left px-3 py-1.5 hover:bg-slate-800 rounded-lg text-slate-300 hover:text-white transition-colors"
-              >
-                Delete for me
-              </button>
-              {isSender && !message.deletedForEveryone && (
-                <button
-                  onClick={() => {
-                    onDeleteForEveryone(message._id);
-                    setShowMenu(false);
-                  }}
-                  className="w-full text-left px-3 py-1.5 hover:bg-rose-500/20 text-rose-400 rounded-lg transition-colors"
-                >
-                  Delete for everyone
-                </button>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
@@ -424,6 +377,64 @@ const MessageBubble = ({
             ) : (
               <img src={message.mediaUrl} alt="View once" className="max-h-[75vh] object-contain rounded-2xl" />
             )}
+      {/* Single Message Actions & Delete Modal Popup */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 select-none">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-400">
+              <Trash2 className="w-6 h-6" />
+            </div>
+
+            <div>
+              <h3 className="text-base font-bold text-slate-100">Delete Message?</h3>
+              <p className="text-xs text-slate-400 mt-1 line-clamp-2 italic">
+                "{message.content || (message.mediaType ? `${message.mediaType} attachment` : 'Message')}"
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              {isSender && !message.deletedForEveryone && (
+                <button
+                  onClick={() => {
+                    onDeleteForEveryone(message._id);
+                    setShowDeleteModal(false);
+                  }}
+                  className="w-full py-2.5 px-4 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-rose-600/30 transition-all flex items-center justify-center gap-2"
+                >
+                  <span>Delete for Everyone</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => {
+                  onDeleteForMe(message._id);
+                  setShowDeleteModal(false);
+                }}
+                className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition-all flex items-center justify-center gap-2"
+              >
+                <span>Delete for Me</span>
+              </button>
+
+              {onReply && (
+                <button
+                  onClick={() => {
+                    onReply(message);
+                    setShowDeleteModal(false);
+                  }}
+                  className="w-full py-2.5 px-4 bg-slate-800/60 hover:bg-slate-800 text-cyan-400 rounded-xl text-xs font-semibold border border-slate-700/50 transition-all flex items-center justify-center gap-2"
+                >
+                  <Reply className="w-4 h-4" />
+                  <span>Reply</span>
+                </button>
+              )}
+
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="w-full py-2 text-xs text-slate-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
