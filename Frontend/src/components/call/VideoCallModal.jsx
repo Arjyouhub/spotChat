@@ -21,6 +21,7 @@ const VideoCallModal = () => {
   const {
     stream,
     remoteStream,
+    receivingCall,
     callAccepted,
     isCalling,
     targetUser,
