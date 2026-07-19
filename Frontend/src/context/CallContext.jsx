@@ -74,49 +74,65 @@ export const CallProvider = ({ children }) => {
   const connectionRef = useRef(null);
   const localStreamRef = useRef(null);
   const ringtoneAudioRef = useRef(null);
+  const ringbackAudioRef = useRef(null);
   const callTimerIntervalRef = useRef(null);
 
   const audioCtxRef = useRef(null);
   const ringtoneIntervalRef = useRef(null);
 
-  // Preload Royalty-Free Classic Telephone Ringback Audio
+  // Preload Pleasant Melodic Ringtone & Classic Ringback Audio
   useEffect(() => {
-    ringtoneAudioRef.current = new Audio('/assets/sounds/ringback.mp3');
-    ringtoneAudioRef.current.loop = true;
-    ringtoneAudioRef.current.preload = 'auto';
+    try {
+      ringtoneAudioRef.current = new Audio('/assets/sounds/ringtone.mp3');
+      ringtoneAudioRef.current.loop = true;
+      ringtoneAudioRef.current.preload = 'auto';
+
+      ringbackAudioRef.current = new Audio('/assets/sounds/ringback.mp3');
+      ringbackAudioRef.current.loop = true;
+      ringbackAudioRef.current.preload = 'auto';
+    } catch (e) {
+      console.warn('Audio preloading error:', e);
+    }
 
     return () => {
       if (ringtoneAudioRef.current) {
-        ringtoneAudioRef.current.pause();
+        try { ringtoneAudioRef.current.pause(); } catch (e) {}
         ringtoneAudioRef.current = null;
+      }
+      if (ringbackAudioRef.current) {
+        try { ringbackAudioRef.current.pause(); } catch (e) {}
+        ringbackAudioRef.current = null;
       }
     };
   }, []);
 
-  // Classic Telephone Ringback Sound Controller (HTML5 Audio API + Web Audio Fallback)
-  const startRingtone = () => {
-    // Prevent overlapping audio
+  // Play Sound (Incoming Ringtone vs Outgoing Ringback)
+  const startRingtone = (isIncoming = false) => {
+    // Stop any active sound first to prevent overlapping
     stopRingtone();
 
+    const targetAudio = isIncoming ? ringtoneAudioRef.current : ringbackAudioRef.current;
+
     try {
-      if (ringtoneAudioRef.current) {
-        ringtoneAudioRef.current.currentTime = 0;
-        const playPromise = ringtoneAudioRef.current.play();
+      if (targetAudio) {
+        targetAudio.currentTime = 0;
+        const playPromise = targetAudio.play();
         if (playPromise !== undefined) {
           playPromise.catch((err) => {
-            console.warn('[Audio] HTML5 ringback play restricted, starting Web Audio fallback:', err);
-            startWebAudioSynth();
+            console.warn('[Audio] HTML5 ringtone play restricted, starting Web Audio chime fallback:', err);
+            startWebAudioChimeSynth(isIncoming);
           });
         }
       } else {
-        startWebAudioSynth();
+        startWebAudioChimeSynth(isIncoming);
       }
     } catch (e) {
-      startWebAudioSynth();
+      startWebAudioChimeSynth(isIncoming);
     }
   };
 
-  const startWebAudioSynth = () => {
+  // Web Audio API Soft Chime & Ringback Synthesizer
+  const startWebAudioChimeSynth = (isIncoming = false) => {
     try {
       if (!audioCtxRef.current) {
         audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -126,37 +142,66 @@ export const CallProvider = ({ children }) => {
         ctx.resume();
       }
 
-      const playPulse = () => {
+      const playMelodicPulse = () => {
         if (!audioCtxRef.current) return;
         const now = ctx.currentTime;
 
-        const osc1 = ctx.createOscillator();
-        const osc2 = ctx.createOscillator();
-        const gain = ctx.createGain();
+        if (isIncoming) {
+          // Soft Melodic Chime Notes: C5 (523Hz), E5 (659Hz), G5 (784Hz), C6 (1046Hz)
+          const notes = [
+            { freq: 523.25, timeOffset: 0.0, dur: 0.3 },
+            { freq: 659.25, timeOffset: 0.2, dur: 0.3 },
+            { freq: 783.99, timeOffset: 0.4, dur: 0.4 },
+            { freq: 1046.50, timeOffset: 0.65, dur: 0.6 },
+          ];
 
-        osc1.type = 'sine';
-        osc2.type = 'sine';
-        osc1.frequency.setValueAtTime(440, now);
-        osc2.frequency.setValueAtTime(480, now);
+          notes.forEach(({ freq, timeOffset, dur }) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
 
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(0.15, now + 0.05);
-        gain.gain.setValueAtTime(0.15, now + 1.8);
-        gain.gain.linearRampToValueAtTime(0, now + 2.0);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + timeOffset);
 
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(ctx.destination);
+            gain.gain.setValueAtTime(0, now + timeOffset);
+            gain.gain.linearRampToValueAtTime(0.12, now + timeOffset + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + timeOffset + dur);
 
-        osc1.start(now);
-        osc2.start(now);
-        osc1.stop(now + 2.0);
-        osc2.stop(now + 2.0);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start(now + timeOffset);
+            osc.stop(now + timeOffset + dur);
+          });
+        } else {
+          // Outgoing call ringback pulse
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc1.type = 'sine';
+          osc2.type = 'sine';
+          osc1.frequency.setValueAtTime(440, now);
+          osc2.frequency.setValueAtTime(480, now);
+
+          gain.gain.setValueAtTime(0, now);
+          gain.gain.linearRampToValueAtTime(0.08, now + 0.05);
+          gain.gain.setValueAtTime(0.08, now + 1.8);
+          gain.gain.linearRampToValueAtTime(0, now + 2.0);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc1.start(now);
+          osc2.start(now);
+          osc1.stop(now + 2.0);
+          osc2.stop(now + 2.0);
+        }
       };
 
-      playPulse();
+      playMelodicPulse();
       clearInterval(ringtoneIntervalRef.current);
-      ringtoneIntervalRef.current = setInterval(playPulse, 4000);
+      ringtoneIntervalRef.current = setInterval(playMelodicPulse, isIncoming ? 2500 : 4000);
     } catch (e) {
       console.error('Web Audio Synth error:', e);
     }
@@ -167,6 +212,12 @@ export const CallProvider = ({ children }) => {
       try {
         ringtoneAudioRef.current.pause();
         ringtoneAudioRef.current.currentTime = 0;
+      } catch (e) {}
+    }
+    if (ringbackAudioRef.current) {
+      try {
+        ringbackAudioRef.current.pause();
+        ringbackAudioRef.current.currentTime = 0;
       } catch (e) {}
     }
     clearInterval(ringtoneIntervalRef.current);
@@ -193,8 +244,10 @@ export const CallProvider = ({ children }) => {
   }, [callAccepted, callEnded]);
 
   useEffect(() => {
-    if (receivingCall || isCalling) {
-      startRingtone();
+    if (receivingCall) {
+      startRingtone(true);
+    } else if (isCalling) {
+      startRingtone(false);
     } else {
       stopRingtone();
     }
