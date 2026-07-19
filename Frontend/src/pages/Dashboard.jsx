@@ -4,6 +4,8 @@ import ChatWindow from '../components/chat/ChatWindow';
 import GroupModal from '../components/chat/GroupModal';
 import ProfileModal from '../components/chat/ProfileModal';
 import SearchModal from '../components/chat/SearchModal';
+import DeviceManagerModal from '../components/chat/DeviceManagerModal';
+import AdminDashboardModal from '../components/admin/AdminDashboardModal';
 import IncomingCallModal from '../components/call/IncomingCallModal';
 import VideoCallModal from '../components/call/VideoCallModal';
 
@@ -21,6 +23,8 @@ const Dashboard = () => {
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isDeviceModalOpen, setIsDeviceModalOpen] = useState(false);
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
 
   // Fetch all chats for logged-in user
   const fetchChats = async () => {
@@ -126,6 +130,8 @@ const Dashboard = () => {
           onOpenGroupModal={() => setIsGroupModalOpen(true)}
           onOpenSearchModal={() => setIsSearchModalOpen(true)}
           onOpenProfileModal={() => setIsProfileModalOpen(true)}
+          onOpenDeviceModal={() => setIsDeviceModalOpen(true)}
+          onOpenAdminModal={() => setIsAdminModalOpen(true)}
         />
       </div>
 
@@ -167,6 +173,16 @@ const Dashboard = () => {
           }
           setSelectedChat(newChat);
         }}
+      />
+
+      <DeviceManagerModal
+        isOpen={isDeviceModalOpen}
+        onClose={() => setIsDeviceModalOpen(false)}
+      />
+
+      <AdminDashboardModal
+        isOpen={isAdminModalOpen}
+        onClose={() => setIsAdminModalOpen(false)}
       />
 
       {/* WebRTC Video / Audio Call UI Overlays */}

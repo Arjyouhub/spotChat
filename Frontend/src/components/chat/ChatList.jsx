@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Search, Plus, UserPlus, LogOut, Settings, MessageSquare, AtSign } from 'lucide-react';
+import { Search, Plus, UserPlus, LogOut, Settings, MessageSquare, AtSign, Sun, Moon, Laptop, Shield } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const ChatList = ({
   chats,
@@ -11,9 +12,12 @@ const ChatList = ({
   onOpenGroupModal,
   onOpenSearchModal,
   onOpenProfileModal,
+  onOpenDeviceModal,
+  onOpenAdminModal,
 }) => {
   const { user, logout } = useAuth();
   const { onlineUsers } = useSocket();
+  const { theme, toggleTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
 
@@ -107,6 +111,27 @@ const ChatList = ({
 
         {/* Action Header Icons */}
         <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={toggleTheme}
+            className="p-2 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-amber-400 transition-colors"
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          >
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+          <button
+            onClick={onOpenDeviceModal}
+            className="p-2 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-cyan-400 transition-colors"
+            title="Linked Devices & E2EE Keys"
+          >
+            <Laptop className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onOpenAdminModal}
+            className="p-2 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-blue-400 transition-colors"
+            title="Admin Dashboard"
+          >
+            <Shield className="w-4 h-4" />
+          </button>
           <button
             onClick={onOpenProfileModal}
             className="p-2 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-cyan-400 transition-colors"

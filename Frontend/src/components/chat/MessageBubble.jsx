@@ -11,6 +11,11 @@ import {
   Lock,
   Maximize2,
   X,
+  Reply,
+  Star,
+  CornerUpRight,
+  Smile,
+  Volume2,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import API from '../../services/api';
@@ -22,14 +27,29 @@ const MessageBubble = ({
   selectedChat,
   onDeleteForEveryone,
   onDeleteForMe,
+  onReply,
+  onStarToggle,
 }) => {
   const { socket } = useSocket();
   const [showMenu, setShowMenu] = useState(false);
+  const [showReactions, setShowReactions] = useState(false);
   const [viewOnceModal, setViewOnceModal] = useState(false);
   const [imageModal, setImageModal] = useState(false);
 
   const isSender = message.sender?._id === currentUser._id;
   const isGroup = selectedChat?.isGroup;
+  const isStarred = message.starredBy?.includes(currentUser._id);
+
+  const handleAddReaction = (emoji) => {
+    if (socket) {
+      socket.emit('message_reaction', {
+        chatId: selectedChat._id,
+        messageId: message._id,
+        emoji,
+      });
+    }
+    setShowReactions(false);
+  };
 
   const formatTime = (dateStr) => {
     if (!dateStr) return '';
@@ -220,7 +240,31 @@ const MessageBubble = ({
           </button>
 
           {showMenu && (
-            <div className="absolute right-0 bottom-6 z-20 w-36 bg-slate-900 border border-slate-800 rounded-xl shadow-xl p-1 text-xs text-slate-300 backdrop-blur-md">
+            <div className="absolute right-0 bottom-6 z-20 w-44 bg-slate-900 border border-slate-800 rounded-xl shadow-xl p-1 text-xs text-slate-300 backdrop-blur-md">
+              {onReply && (
+                <button
+                  onClick={() => {
+                    onReply(message);
+                    setShowMenu(false);
+                  }}
+                  className="w-full text-left px-3 py-1.5 hover:bg-slate-800 rounded-lg text-slate-300 hover:text-white flex items-center gap-2 transition-colors"
+                >
+                  <Reply className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Reply</span>
+                </button>
+              )}
+              {onStarToggle && (
+                <button
+                  onClick={() => {
+                    onStarToggle(message._id);
+                    setShowMenu(false);
+                  }}
+                  className="w-full text-left px-3 py-1.5 hover:bg-slate-800 rounded-lg text-amber-400 hover:text-amber-300 flex items-center gap-2 transition-colors"
+                >
+                  <Star className="w-3.5 h-3.5 fill-current" />
+                  <span>{isStarred ? 'Unstar' : 'Star message'}</span>
+                </button>
+              )}
               <button
                 onClick={() => {
                   onDeleteForMe(message._id);

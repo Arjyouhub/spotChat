@@ -14,7 +14,9 @@ const userRoutes = require('./routes/userRoutes');
 const chatRoutes = require('./routes/chatRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const mediaRoutes = require('./routes/mediaRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 const { apiLimiter } = require('./middleware/rateLimiter');
+const { applySecurityMiddleware } = require('./middleware/securityMiddleware');
 
 // Connect Database
 connectDB();
@@ -22,6 +24,9 @@ connectDB();
 const app = express();
 app.set('trust proxy', 1);
 const server = http.createServer(app);
+
+// Apply Security Middleware
+applySecurityMiddleware(app);
 
 // CORS configuration
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
@@ -44,6 +49,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/media', mediaRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {

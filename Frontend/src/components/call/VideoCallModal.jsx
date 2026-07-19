@@ -12,6 +12,7 @@ import {
   RefreshCw,
   FlipHorizontal,
   SwitchCamera,
+  ScreenShare,
 } from 'lucide-react';
 import { useCall } from '../../context/CallContext';
 import Avatar from '../common/Avatar';
@@ -203,6 +204,22 @@ const VideoCallModal = () => {
               title={isMirrored ? 'Disable Mirror Camera' : 'Enable Mirror Camera'}
             >
               <FlipHorizontal className="w-5 h-5" />
+            </button>
+
+            {/* Screen Share Button */}
+            <button
+              onClick={async () => {
+                try {
+                  const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                  if (myVideoRef.current) myVideoRef.current.srcObject = screenStream;
+                } catch (err) {
+                  console.error('Screen sharing error:', err);
+                }
+              }}
+              className="p-3.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-400 rounded-full transition-all"
+              title="Share Screen"
+            >
+              <ScreenShare className="w-5 h-5" />
             </button>
 
             {/* Switch Camera (Front / Back) Button */}

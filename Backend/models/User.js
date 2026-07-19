@@ -44,6 +44,36 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    publicKey: {
+      type: String,
+      default: '',
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+    },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
+    blockedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    starredMessages: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Message',
+      },
+    ],
+    refreshTokens: [
+      {
+        type: String,
+      },
+    ],
   },
   {
     timestamps: true,

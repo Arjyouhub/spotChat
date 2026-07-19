@@ -66,6 +66,45 @@ const messageSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    // E2EE Encryption Fields
+    iv: {
+      type: String,
+      default: '',
+    },
+    senderPublicKey: {
+      type: String,
+      default: '',
+    },
+    isEncrypted: {
+      type: Boolean,
+      default: false,
+    },
+    // Advanced Messaging
+    replyTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Message',
+      default: null,
+    },
+    isForwarded: {
+      type: Boolean,
+      default: false,
+    },
+    isEdited: {
+      type: Boolean,
+      default: false,
+    },
+    starredBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    reactions: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        emoji: { type: String, required: true },
+      },
+    ],
   },
   {
     timestamps: true,
