@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Check,
   CheckCheck,
@@ -16,10 +16,84 @@ import {
   CornerUpRight,
   Smile,
   Volume2,
+  Play,
+  Pause,
+  Mic,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import API from '../../services/api';
 import { useSocket } from '../../context/SocketContext';
+
+const VoiceNotePlayer = ({ audioUrl }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef(null);
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().catch((err) => console.error('Audio play error:', err));
+      setIsPlaying(true);
+    }
+  };
+
+  const formatSec = (sec) => {
+    if (isNaN(sec) || !sec) return '00:00';
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div className="flex items-center gap-3 p-3 bg-slate-900/60 border border-slate-700/50 rounded-2xl my-1 min-w-[220px]">
+      <audio
+        ref={audioRef}
+        src={audioUrl}
+        onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime || 0)}
+        onLoadedMetadata={() => setDuration(audioRef.current?.duration || 0)}
+        onEnded={() => setIsPlaying(false)}
+        preload="metadata"
+      />
+      <button
+        type="button"
+        onClick={togglePlay}
+        className="p-2.5 bg-gradient-to-tr from-cyan-500 to-blue-600 text-white rounded-full shadow-md hover:scale-105 transition-all flex-shrink-0"
+      >
+        {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
+      </button>
+
+      <div className="flex-1 min-w-0">
+        {/* Waveform visualizer */}
+        <div className="flex items-center gap-1 h-6 mb-1">
+          {[40, 70, 30, 85, 60, 95, 50, 80, 45, 90, 65, 40, 75, 55, 85].map((height, i) => {
+            const progress = duration > 0 ? (currentTime / duration) * 15 : 0;
+            const isActive = i <= progress;
+            return (
+              <div
+                key={i}
+                style={{ height: `${height}%` }}
+                className={`w-1 rounded-full transition-all duration-150 ${
+                  isActive ? 'bg-cyan-400' : 'bg-slate-700'
+                }`}
+              />
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-between text-[10px] text-slate-400 font-semibold">
+          <span className="flex items-center gap-1">
+            <Mic className="w-3 h-3 text-cyan-400" /> Voice Note
+          </span>
+          <span>{isPlaying ? formatSec(currentTime) : formatSec(duration || currentTime)}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const MessageBubble = ({
   message,
@@ -194,7 +268,7 @@ const MessageBubble = ({
                   )}
 
                   {isAudio && (
-                    <audio src={message.mediaUrl} controls className="w-full" />
+                    <VoiceNotePlayer audioUrl={message.mediaUrl} />
                   )}
 
                   {!isImage && !isVideo && !isAudio && (

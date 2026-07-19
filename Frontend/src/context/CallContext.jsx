@@ -69,9 +69,52 @@ export const CallProvider = ({ children }) => {
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [isMirrored, setIsMirrored] = useState(true);
   const [facingMode, setFacingMode] = useState('user');
+  const [callDuration, setCallDuration] = useState(0);
 
   const connectionRef = useRef(null);
   const localStreamRef = useRef(null);
+  const ringtoneAudioRef = useRef(null);
+  const callTimerIntervalRef = useRef(null);
+
+  // Web Audio Ringtone Generator
+  const startRingtone = () => {
+    try {
+      if (!ringtoneAudioRef.current) {
+        ringtoneAudioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3');
+        ringtoneAudioRef.current.loop = true;
+      }
+      ringtoneAudioRef.current.play().catch(() => {});
+    } catch (e) {}
+  };
+
+  const stopRingtone = () => {
+    if (ringtoneAudioRef.current) {
+      ringtoneAudioRef.current.pause();
+      ringtoneAudioRef.current.currentTime = 0;
+    }
+  };
+
+  // Call Duration Timer
+  useEffect(() => {
+    if (callAccepted && !callEnded) {
+      stopRingtone();
+      callTimerIntervalRef.current = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    } else {
+      clearInterval(callTimerIntervalRef.current);
+      setCallDuration(0);
+    }
+    return () => clearInterval(callTimerIntervalRef.current);
+  }, [callAccepted, callEnded]);
+
+  useEffect(() => {
+    if (receivingCall || isCalling) {
+      startRingtone();
+    } else {
+      stopRingtone();
+    }
+  }, [receivingCall, isCalling]);
 
   useEffect(() => {
     if (!socket) return;
@@ -357,6 +400,7 @@ export const CallProvider = ({ children }) => {
         isVideoOff,
         isMirrored,
         facingMode,
+        callDuration,
         callUser,
         answerCall,
         rejectCall,

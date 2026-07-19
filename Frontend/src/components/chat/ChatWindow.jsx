@@ -224,8 +224,8 @@ const ChatWindow = ({
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-950 relative overflow-hidden">
-      {/* Header */}
-      <div className="px-2 py-2 sm:px-4 sm:py-3 bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-xl flex items-center justify-between z-10 gap-1.5 sm:gap-2.5">
+      {/* Sticky Header */}
+      <div className="sticky top-0 px-2 py-2 sm:px-4 sm:py-3 bg-slate-900/95 border-b border-slate-800/80 backdrop-blur-xl flex items-center justify-between z-20 gap-1.5 sm:gap-2.5 flex-shrink-0">
         <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
           <button
             onClick={onBack}

@@ -125,13 +125,15 @@ const ChatList = ({
           >
             <Laptop className="w-4 h-4" />
           </button>
-          <button
-            onClick={onOpenAdminModal}
-            className="p-2 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-blue-400 transition-colors"
-            title="Admin Dashboard"
-          >
-            <Shield className="w-4 h-4" />
-          </button>
+          {user?.role === 'admin' && (
+            <button
+              onClick={onOpenAdminModal}
+              className="p-2 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-blue-400 transition-colors"
+              title="Admin Dashboard"
+            >
+              <Shield className="w-4 h-4" />
+            </button>
+          )}
           <button
             onClick={onOpenProfileModal}
             className="p-2 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-cyan-400 transition-colors"

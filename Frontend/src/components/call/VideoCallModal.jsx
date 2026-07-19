@@ -30,6 +30,7 @@ const VideoCallModal = () => {
     isVideoOff,
     isMirrored,
     facingMode,
+    callDuration,
     endCall,
     toggleMute,
     toggleCamera,
@@ -39,6 +40,7 @@ const VideoCallModal = () => {
 
   const myVideoRef = useRef(null);
   const userVideoRef = useRef(null);
+  const remoteAudioRef = useRef(null);
   const modalContainerRef = useRef(null);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -54,7 +56,17 @@ const VideoCallModal = () => {
     if (userVideoRef.current && remoteStream) {
       userVideoRef.current.srcObject = remoteStream;
     }
+    if (remoteAudioRef.current && remoteStream) {
+      remoteAudioRef.current.srcObject = remoteStream;
+      remoteAudioRef.current.play().catch(() => {});
+    }
   }, [remoteStream, swapViews]);
+
+  const formatTimer = (sec) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -75,6 +87,9 @@ const VideoCallModal = () => {
       ref={modalContainerRef}
       className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-2xl flex flex-col items-center justify-between p-4 sm:p-6 select-none"
     >
+      {/* Hidden Remote Audio Element for guaranteed remote stream audio output */}
+      <audio ref={remoteAudioRef} autoPlay playsInline />
+
       {/* Top Header Controls & HD Badge */}
       <div className="w-full max-w-5xl flex items-center justify-between bg-slate-900/70 border border-slate-800 rounded-2xl px-6 py-3 backdrop-blur-md shadow-xl z-20">
         <div className="flex items-center gap-3">
@@ -83,7 +98,7 @@ const VideoCallModal = () => {
             <h3 className="text-sm font-bold text-slate-100">{partner?.name}</h3>
             <p className="text-[11px] text-cyan-400 font-medium flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              {callAccepted ? 'HD Call Connected (1080p @ 3Mbps)' : `Calling (${callType})...`}
+              {callAccepted ? `Call Connected (${formatTimer(callDuration)})` : `Calling (${callType})...`}
             </p>
           </div>
         </div>
