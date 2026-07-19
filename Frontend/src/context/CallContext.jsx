@@ -392,11 +392,13 @@ export const CallProvider = ({ children }) => {
         peer.addTrack(track, currentStream);
       });
 
+      const targetId = typeof userToCall === 'string' ? userToCall : (userToCall?._id || userToCall?.id || '').toString();
+
       peer.onicecandidate = (event) => {
         if (event.candidate) {
           console.log('[WebRTC] ICE candidate sent:', event.candidate);
           socket.emit('ice_candidate', {
-            to: userToCall._id,
+            to: targetId,
             candidate: event.candidate,
           });
         }
@@ -417,9 +419,9 @@ export const CallProvider = ({ children }) => {
       console.log('[WebRTC] Offer created:', offer);
 
       socket.emit('call_user', {
-        userToCall: userToCall._id,
+        userToCall: targetId,
         signalData: offer,
-        from: user._id,
+        from: (user?._id || user?.id || user).toString(),
         name: user.name,
         avatar: user.avatar,
         callType: type,
@@ -453,10 +455,12 @@ export const CallProvider = ({ children }) => {
         peer.addTrack(track, currentStream);
       });
 
+      const callerId = caller ? (caller._id || caller.id || caller).toString() : null;
+
       peer.onicecandidate = (event) => {
-        if (event.candidate) {
+        if (event.candidate && callerId) {
           socket.emit('ice_candidate', {
-            to: caller.id,
+            to: callerId,
             candidate: event.candidate,
           });
         }
@@ -472,10 +476,12 @@ export const CallProvider = ({ children }) => {
       const answer = await peer.createAnswer();
       await peer.setLocalDescription(answer);
 
-      socket.emit('answer_call', {
-        to: caller.id,
-        signal: answer,
-      });
+      if (callerId) {
+        socket.emit('answer_call', {
+          to: callerId,
+          signal: answer,
+        });
+      }
 
       applyHDBitrateOptimization(peer);
     } catch (err) {
@@ -485,15 +491,16 @@ export const CallProvider = ({ children }) => {
   };
 
   const rejectCall = () => {
-    if (socket && caller) {
-      socket.emit('reject_call', { to: caller.id });
+    const callerId = caller ? (caller._id || caller.id || caller).toString() : null;
+    if (socket && callerId) {
+      socket.emit('reject_call', { to: callerId });
     }
     saveCallLogToChat('rejected', 0);
     cleanupCall();
   };
 
   const endCall = () => {
-    const peerId = targetUser ? targetUser._id : caller ? caller.id : null;
+    const peerId = targetUser ? (targetUser._id || targetUser.id || targetUser).toString() : caller ? (caller._id || caller.id || caller).toString() : null;
     if (socket && peerId) {
       socket.emit('end_call', { to: peerId });
     }
