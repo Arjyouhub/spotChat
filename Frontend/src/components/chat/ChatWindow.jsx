@@ -21,23 +21,27 @@ const ChatWindow = ({
   const [typingUsers, setTypingUsers] = useState(new Set());
   const messagesEndRef = useRef(null);
 
-  // Target User info for 1-on-1 chats
-  const otherUser =
-    !selectedChat?.isGroup && selectedChat?.users
-      ? selectedChat.users.find((u) => {
-          const uid = (u._id || u).toString();
-          const myId = (currentUser._id || currentUser).toString();
-          return uid !== myId;
-        })
-      : null;
+  const getOtherUser = (chat, currentUserId) => {
+    if (!chat || chat.isGroup || !chat.users) return null;
+    const myId = (currentUserId?._id || currentUserId || '').toString();
+    const found = chat.users.find((u) => {
+      const uid = typeof u === 'string' ? u : (u?._id || u || '').toString();
+      return uid !== myId;
+    });
+    if (!found) return null;
+    return typeof found === 'string' ? { _id: found, name: 'User' } : found;
+  };
+
+  const otherUser = getOtherUser(selectedChat, currentUser);
+  const targetUserId = otherUser?._id ? otherUser._id.toString() : null;
 
   // Real-time online status check
-  const isTargetOnline = otherUser
-    ? onlineUsers.get(otherUser._id.toString())?.isOnline ?? otherUser.isOnline
+  const isTargetOnline = targetUserId
+    ? onlineUsers.get(targetUserId)?.isOnline ?? otherUser?.isOnline ?? false
     : false;
 
-  const targetLastSeen = otherUser
-    ? onlineUsers.get(otherUser._id.toString())?.lastSeen ?? otherUser.lastSeen
+  const targetLastSeen = targetUserId
+    ? onlineUsers.get(targetUserId)?.lastSeen ?? otherUser?.lastSeen ?? null
     : null;
 
   // Fetch Message History

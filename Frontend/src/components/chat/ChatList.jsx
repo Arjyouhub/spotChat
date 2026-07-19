@@ -21,14 +21,23 @@ const ChatList = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
 
+  const getOtherUser = (chat) => {
+    if (!chat || chat.isGroup || !chat.users) return null;
+    const myId = (user?._id || '').toString();
+    const found = chat.users.find((u) => {
+      const uid = typeof u === 'string' ? u : (u?._id || u || '').toString();
+      return uid !== myId;
+    });
+    if (!found) return null;
+    return typeof found === 'string' ? { _id: found, name: 'User' } : found;
+  };
+
   const filteredChats = chats.filter((chat) => {
     const isGroup = chat.isGroup;
     if (activeTab === 'direct' && isGroup) return false;
     if (activeTab === 'groups' && !isGroup) return false;
 
-    const otherUser = !isGroup
-      ? chat.users.find((u) => u._id !== user._id)
-      : null;
+    const otherUser = getOtherUser(chat);
 
     const title = isGroup ? chat.chatName : otherUser?.name || '';
     const username = otherUser?.username || '';
@@ -42,27 +51,27 @@ const ChatList = ({
 
   const getChatTitle = (chat) => {
     if (chat.isGroup) return chat.chatName;
-    const otherUser = chat.users.find((u) => u._id !== user._id);
-    return otherUser ? otherUser.name : 'Unknown User';
+    const otherUser = getOtherUser(chat);
+    return otherUser?.name || 'User';
   };
 
   const getChatUsername = (chat) => {
     if (chat.isGroup) return null;
-    const otherUser = chat.users.find((u) => u._id !== user._id);
-    return otherUser?.username || otherUser?.email.split('@')[0];
+    const otherUser = getOtherUser(chat);
+    return otherUser?.username || (otherUser?.email ? otherUser.email.split('@')[0] : null);
   };
 
   const getChatAvatar = (chat) => {
     if (chat.isGroup) return chat.groupAvatar;
-    const otherUser = chat.users.find((u) => u._id !== user._id);
+    const otherUser = getOtherUser(chat);
     return otherUser?.avatar;
   };
 
   const getIsOnline = (chat) => {
     if (chat.isGroup) return undefined;
-    const otherUser = chat.users.find((u) => u._id !== user._id);
-    if (!otherUser) return false;
-    return onlineUsers.get(otherUser._id.toString())?.isOnline ?? otherUser.isOnline;
+    const otherUser = getOtherUser(chat);
+    if (!otherUser?._id) return false;
+    return onlineUsers.get(otherUser._id.toString())?.isOnline ?? otherUser.isOnline ?? false;
   };
 
   const getLastMessageText = (chat) => {
