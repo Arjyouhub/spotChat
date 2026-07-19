@@ -19,6 +19,7 @@ import {
   Play,
   Pause,
   Mic,
+  AlertCircle,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import API from '../../services/api';
@@ -103,6 +104,7 @@ const MessageBubble = ({
   onDeleteForMe,
   onReply,
   onStarToggle,
+  onRetry,
 }) => {
   const { socket } = useSocket();
   const [showMenu, setShowMenu] = useState(false);
@@ -110,7 +112,7 @@ const MessageBubble = ({
   const [viewOnceModal, setViewOnceModal] = useState(false);
   const [imageModal, setImageModal] = useState(false);
 
-  const isSender = message.sender?._id === currentUser._id;
+  const isSender = (message.sender?._id || message.sender).toString() === (currentUser._id || currentUser).toString();
   const isGroup = selectedChat?.isGroup;
   const isStarred = message.starredBy?.includes(currentUser._id);
 
@@ -150,6 +152,23 @@ const MessageBubble = ({
   const renderTicks = () => {
     if (!isSender) return null;
 
+    if (message.status === 'sending') {
+      return <Clock className="w-3.5 h-3.5 text-amber-300 animate-spin inline" title="Sending..." />;
+    }
+
+    if (message.status === 'failed') {
+      return (
+        <button
+          onClick={() => onRetry && onRetry(message)}
+          className="flex items-center gap-1 text-rose-400 font-bold hover:underline ml-1"
+          title="Failed to send - Tap to retry"
+        >
+          <AlertCircle className="w-3.5 h-3.5" />
+          <span>Retry</span>
+        </button>
+      );
+    }
+
     const isRead =
       message.readBy &&
       message.readBy.some((id) => (id._id || id) !== currentUser._id);
@@ -158,11 +177,11 @@ const MessageBubble = ({
       message.deliveredTo.some((id) => (id._id || id) !== currentUser._id);
 
     if (isRead) {
-      return <CheckCheck className="w-4 h-4 text-cyan-400 inline" />;
+      return <CheckCheck className="w-4 h-4 text-cyan-400 inline" title="Seen" />;
     } else if (isDelivered) {
-      return <CheckCheck className="w-4 h-4 text-slate-400 inline" />;
+      return <CheckCheck className="w-4 h-4 text-slate-400 inline" title="Delivered" />;
     }
-    return <Check className="w-4 h-4 text-slate-400 inline" />;
+    return <Check className="w-4 h-4 text-slate-400 inline" title="Sent" />;
   };
 
   const isImage =
@@ -412,4 +431,4 @@ const MessageBubble = ({
   );
 };
 
-export default MessageBubble;
+export default React.memo(MessageBubble);

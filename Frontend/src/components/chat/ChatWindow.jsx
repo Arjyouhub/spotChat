@@ -96,9 +96,12 @@ const ChatWindow = ({
     if (!socket) return;
 
     const handleMessageReceived = (newMessage) => {
-      if (selectedChat && newMessage.chat._id === selectedChat._id) {
-        setMessages((prev) => [...prev, newMessage]);
-        // Emit mark_read
+      const incomingChatId = newMessage.chat._id || newMessage.chat;
+      if (selectedChat && incomingChatId === selectedChat._id) {
+        setMessages((prev) => {
+          if (prev.some((m) => m._id === newMessage._id)) return prev;
+          return [...prev, newMessage];
+        });
         socket.emit('mark_read', {
           chatId: selectedChat._id,
           messageIds: [newMessage._id],
@@ -171,21 +174,56 @@ const ChatWindow = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, typingUsers]);
 
-  // Send Message Handler
-  const handleSendMessage = async (messagePayload) => {
+  // Optimistic UI Send Message Handler (< 10ms instant response)
+  const handleSendMessage = async (messagePayload, retryTempId = null) => {
+    const tempId = retryTempId || `temp-${Date.now()}`;
+    const optimisticMessage = {
+      _id: tempId,
+      sender: currentUser,
+      chat: selectedChat._id,
+      content: messagePayload.content || '',
+      mediaUrl: messagePayload.mediaUrl || '',
+      mediaType: messagePayload.mediaType || null,
+      isViewOnce: !!messagePayload.isViewOnce,
+      createdAt: new Date().toISOString(),
+      readBy: [currentUser._id],
+      deliveredTo: [currentUser._id],
+      status: 'sending',
+      payload: messagePayload,
+    };
+
+    if (!retryTempId) {
+      setMessages((prev) => [...prev, optimisticMessage]);
+    } else {
+      setMessages((prev) =>
+        prev.map((msg) => (msg._id === tempId ? { ...optimisticMessage, status: 'sending' } : msg))
+      );
+    }
+
     try {
       const { data } = await API.post('/messages', {
         chatId: selectedChat._id,
         ...messagePayload,
       });
 
-      setMessages((prev) => [...prev, data]);
+      setMessages((prev) =>
+        prev.map((msg) => (msg._id === tempId ? { ...data, status: 'sent' } : msg))
+      );
 
       if (socket) {
         socket.emit('new_message', data);
       }
     } catch (err) {
-      console.error('Error sending message:', err);
+      console.error('Error sending message (Optimistic UI):', err);
+      setMessages((prev) =>
+        prev.map((msg) => (msg._id === tempId ? { ...msg, status: 'failed' } : msg))
+      );
+    }
+  };
+
+  const handleRetryMessage = (failedMessage) => {
+    if (failedMessage.payload) {
+      handleSendMessage(failedMessage.payload, failedMessage._id);
     }
   };
 
@@ -350,6 +388,7 @@ const ChatWindow = ({
               selectedChat={selectedChat}
               onDeleteForMe={handleDeleteForMe}
               onDeleteForEveryone={handleDeleteForEveryone}
+              onRetry={handleRetryMessage}
             />
           ))
         )}

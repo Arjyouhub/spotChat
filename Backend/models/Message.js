@@ -111,7 +111,10 @@ const messageSchema = new mongoose.Schema(
   }
 );
 
-// Optional index for expiring messages automatically
+// Performance indexes for instant query retrieval & TTL
+messageSchema.index({ chat: 1, createdAt: 1 });
+messageSchema.index({ sender: 1, createdAt: 1 });
+messageSchema.index({ readBy: 1 });
 messageSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model('Message', messageSchema);
