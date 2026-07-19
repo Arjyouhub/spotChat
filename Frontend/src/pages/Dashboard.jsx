@@ -67,11 +67,14 @@ const Dashboard = () => {
 
     const handleProfileUpdated = (updatedUser) => {
       const { userId, name, username, avatar, status } = updatedUser;
+      if (!userId) return;
 
       setChats((prevChats) =>
         prevChats.map((chat) => {
+          if (!chat || !Array.isArray(chat.users)) return chat;
           const updatedUsers = chat.users.map((u) => {
-            if (u._id.toString() === userId.toString()) {
+            const uid = typeof u === 'string' ? u : (u?._id || u || '').toString();
+            if (uid === userId.toString() && typeof u === 'object') {
               return {
                 ...u,
                 ...(name && { name }),
@@ -87,9 +90,10 @@ const Dashboard = () => {
       );
 
       setSelectedChat((prevSelected) => {
-        if (!prevSelected) return null;
+        if (!prevSelected || !Array.isArray(prevSelected.users)) return prevSelected;
         const updatedUsers = prevSelected.users.map((u) => {
-          if (u._id.toString() === userId.toString()) {
+          const uid = typeof u === 'string' ? u : (u?._id || u || '').toString();
+          if (uid === userId.toString() && typeof u === 'object') {
             return {
               ...u,
               ...(name && { name }),

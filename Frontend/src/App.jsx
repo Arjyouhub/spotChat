@@ -35,6 +35,11 @@ class ErrorBoundary extends React.Component {
             <p className="text-xs text-slate-400 leading-relaxed">
               If your chat session encountered a temporary display issue, tap below to refresh or re-login.
             </p>
+            {this.state.error && (
+              <p className="text-[10px] text-rose-400 font-mono bg-slate-950/90 p-2.5 rounded-xl border border-rose-500/30 overflow-auto max-h-24 text-left">
+                {this.state.error.toString()}
+              </p>
+            )}
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => window.location.reload()}
