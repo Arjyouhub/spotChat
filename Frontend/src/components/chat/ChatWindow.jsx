@@ -225,27 +225,27 @@ const ChatWindow = ({
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-950 relative overflow-hidden">
       {/* Header */}
-      <div className="px-3 py-2.5 sm:px-4 sm:py-3 bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-xl flex items-center justify-between z-10 gap-2">
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+      <div className="px-2 py-2 sm:px-4 sm:py-3 bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-xl flex items-center justify-between z-10 gap-1.5 sm:gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
           <button
             onClick={onBack}
-            className="md:hidden p-1.5 hover:bg-slate-800 rounded-xl text-slate-300 flex-shrink-0"
+            className="md:hidden p-1 sm:p-1.5 hover:bg-slate-800 rounded-lg text-slate-300 flex-shrink-0"
             title="Back to chats"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
           <Avatar
             src={avatarSrc}
             name={title}
             isOnline={!selectedChat.isGroup ? isTargetOnline : undefined}
-            size="md"
+            size="sm"
             className="flex-shrink-0"
           />
 
           <div className="min-w-0 flex-1">
-            <h2 className="text-xs sm:text-sm font-bold text-slate-100 truncate">{title}</h2>
-            <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
+            <h2 className="text-xs sm:text-sm font-bold text-slate-100 truncate leading-tight">{title}</h2>
+            <p className="text-[10px] sm:text-[11px] text-slate-400 truncate leading-tight">
               {selectedChat.isGroup ? (
                 `${selectedChat.users.length} members`
               ) : isTargetOnline ? (
@@ -267,17 +267,17 @@ const ChatWindow = ({
           <div className="flex items-center gap-1 flex-shrink-0">
             <button
               onClick={() => callUser(otherUser, 'audio')}
-              className="p-2 sm:p-2.5 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-cyan-400 hover:text-cyan-300 transition-colors border border-slate-700/50"
+              className="p-1.5 sm:p-2 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-cyan-400 hover:text-cyan-300 transition-colors border border-slate-700/50"
               title="Start Audio Call"
             >
-              <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Phone className="w-4 h-4" />
             </button>
             <button
               onClick={() => callUser(otherUser, 'video')}
-              className="p-2 sm:p-2.5 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-blue-400 hover:text-blue-300 transition-colors border border-slate-700/50"
+              className="p-1.5 sm:p-2 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-blue-400 hover:text-blue-300 transition-colors border border-slate-700/50"
               title="Start Video Call"
             >
-              <Video className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Video className="w-4 h-4" />
             </button>
           </div>
         )}

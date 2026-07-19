@@ -158,7 +158,7 @@ const MessageInput = ({ selectedChat, onSendMessage, onUpdateDisappearing, reply
   };
 
   return (
-    <div className="p-3 bg-slate-900/95 border-t border-slate-800/80 backdrop-blur-xl relative">
+    <div className="p-1.5 sm:p-3 bg-slate-900/95 border-t border-slate-800/80 backdrop-blur-xl relative">
       {/* Reply Preview Bar */}
       {replyToMessage && (
         <div className="mb-2 p-2 bg-blue-900/20 border-l-4 border-cyan-500 rounded-r-xl flex items-center justify-between">
@@ -216,7 +216,7 @@ const MessageInput = ({ selectedChat, onSendMessage, onUpdateDisappearing, reply
 
       {/* Disappearing Timer Dropdown Popup */}
       {showTimerMenu && (
-        <div className="absolute left-4 bottom-16 z-30 w-48 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 text-xs text-slate-200 backdrop-blur-md">
+        <div className="absolute left-2 bottom-14 z-30 w-48 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl p-2 text-xs text-slate-200 backdrop-blur-md">
           <p className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
             Disappearing Messages
           </p>
@@ -264,29 +264,29 @@ const MessageInput = ({ selectedChat, onSendMessage, onUpdateDisappearing, reply
       )}
 
       {/* Form Bar */}
-      <form onSubmit={handleSubmit} className="flex items-center gap-2">
+      <form onSubmit={handleSubmit} className="flex items-center gap-1 sm:gap-2">
         {/* Disappearing timer trigger button */}
         <button
           type="button"
           onClick={() => setShowTimerMenu(!showTimerMenu)}
-          className={`p-2.5 rounded-xl border transition-all ${
+          className={`p-1.5 sm:p-2.5 rounded-xl border transition-all flex-shrink-0 ${
             selectedChat.disappearingDuration > 0
               ? 'bg-amber-500/20 border-amber-500/50 text-amber-400'
               : 'bg-slate-800 border-slate-700/60 text-slate-400 hover:text-slate-200'
           }`}
           title="Disappearing timer"
         >
-          <Clock className="w-5 h-5" />
+          <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
 
         {/* Attachment upload trigger */}
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl border border-slate-700/60 transition-all"
+          className="p-1.5 sm:p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl border border-slate-700/60 transition-all flex-shrink-0"
           title="Attach media"
         >
-          <Paperclip className="w-5 h-5" />
+          <Paperclip className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
         <input
           type="file"
@@ -298,15 +298,15 @@ const MessageInput = ({ selectedChat, onSendMessage, onUpdateDisappearing, reply
 
         {/* Voice Note Recording Bar */}
         {isRecording ? (
-          <div className="flex-1 bg-rose-500/10 border border-rose-500/30 rounded-xl px-4 py-2 flex items-center justify-between text-rose-400 text-xs font-semibold animate-pulse">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping" />
-              <span>Recording Voice Note... ({formatRecordingTime(recordingTime)})</span>
+          <div className="flex-1 bg-rose-500/10 border border-rose-500/30 rounded-xl px-2.5 py-1.5 sm:px-4 sm:py-2 flex items-center justify-between text-rose-400 text-xs font-semibold animate-pulse min-w-0">
+            <div className="flex items-center gap-1.5 min-w-0 truncate">
+              <span className="w-2 h-2 bg-rose-500 rounded-full animate-ping flex-shrink-0" />
+              <span className="truncate">Recording ({formatRecordingTime(recordingTime)})</span>
             </div>
             <button
               type="button"
               onClick={stopVoiceRecording}
-              className="p-1 hover:bg-rose-500/20 rounded-lg text-rose-300"
+              className="p-1 hover:bg-rose-500/20 rounded-lg text-rose-300 flex-shrink-0"
             >
               <Square className="w-4 h-4 fill-current" />
             </button>
@@ -317,7 +317,7 @@ const MessageInput = ({ selectedChat, onSendMessage, onUpdateDisappearing, reply
             value={content}
             onChange={handleInputChange}
             placeholder="Type a message..."
-            className="flex-1 bg-slate-800/90 border border-slate-700/80 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all"
+            className="flex-1 min-w-0 bg-slate-800/90 border border-slate-700/80 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 outline-none transition-all"
           />
         )}
 
@@ -326,10 +326,10 @@ const MessageInput = ({ selectedChat, onSendMessage, onUpdateDisappearing, reply
           <button
             type="button"
             onClick={startVoiceRecording}
-            className="p-2.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-cyan-300 rounded-xl border border-slate-700/60 transition-all"
+            className="p-1.5 sm:p-2.5 bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-cyan-300 rounded-xl border border-slate-700/60 transition-all flex-shrink-0"
             title="Record Voice Note"
           >
-            <Mic className="w-5 h-5" />
+            <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         )}
 
@@ -338,12 +338,12 @@ const MessageInput = ({ selectedChat, onSendMessage, onUpdateDisappearing, reply
           <button
             type="submit"
             disabled={uploading}
-            className="p-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 disabled:opacity-40 text-white rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center"
+            className="p-1.5 sm:p-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 disabled:opacity-40 text-white rounded-xl shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center flex-shrink-0"
           >
             {uploading ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-              <Send className="w-5 h-5" />
+              <Send className="w-4 h-4 sm:w-5 sm:h-5" />
             )}
           </button>
         )}
