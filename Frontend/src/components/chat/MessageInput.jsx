@@ -158,7 +158,7 @@ const MessageInput = ({ selectedChat, onSendMessage, onUpdateDisappearing, reply
   };
 
   return (
-    <div className="p-1.5 sm:p-3 bg-slate-900/95 border-t border-slate-800/80 backdrop-blur-xl relative">
+    <div className="p-1.5 sm:p-3 bg-white/95 dark:bg-slate-900/95 border-t border-slate-200 dark:border-slate-800/80 backdrop-blur-xl relative transition-colors duration-200">
       {/* Reply Preview Bar */}
       {replyToMessage && (
         <div className="mb-2 p-2 bg-blue-900/20 border-l-4 border-cyan-500 rounded-r-xl flex items-center justify-between">
@@ -317,7 +317,7 @@ const MessageInput = ({ selectedChat, onSendMessage, onUpdateDisappearing, reply
             value={content}
             onChange={handleInputChange}
             placeholder="Type a message..."
-            className="flex-1 min-w-0 bg-slate-800/90 border border-slate-700/80 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 outline-none transition-all"
+            className="flex-1 min-w-0 bg-slate-100 dark:bg-slate-800/90 border border-slate-300 dark:border-slate-700/80 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none transition-all"
           />
         )}
 

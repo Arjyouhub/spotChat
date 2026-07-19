@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @layer base {
   html, body, #root {
     height: 100%;
@@ -10,7 +12,7 @@
     overflow: hidden;
   }
   body {
-    @apply bg-slate-950 text-slate-100 antialiased font-sans select-none;
+    @apply bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased font-sans select-none transition-colors duration-200;
     -webkit-tap-highlight-color: transparent;
   }
 }

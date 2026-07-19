@@ -289,12 +289,12 @@ const ChatWindow = ({
 
   if (!selectedChat) {
     return (
-      <div className="flex-1 hidden md:flex flex-col items-center justify-center bg-slate-950 text-slate-500 p-8">
-        <div className="w-20 h-20 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mb-4 text-cyan-400 shadow-xl">
+      <div className="flex-1 hidden md:flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-950 text-slate-500 p-8 transition-colors duration-200">
+        <div className="w-20 h-20 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center mb-4 text-cyan-600 dark:text-cyan-400 shadow-xl">
           <MessageSquare className="w-10 h-10" />
         </div>
-        <h3 className="text-xl font-bold text-slate-200">No Chat Selected</h3>
-        <p className="text-sm text-slate-400 mt-1 max-w-sm text-center">
+        <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200">No Chat Selected</h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm text-center">
           Choose a conversation from the sidebar or start a new chat to begin messaging.
         </p>
       </div>
@@ -312,9 +312,9 @@ const ChatWindow = ({
     : otherUser?.avatar;
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-950 relative overflow-hidden">
+    <div className="flex-1 flex flex-col h-full bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 relative overflow-hidden transition-colors duration-200">
       {/* Sticky Header */}
-      <div className="sticky top-0 px-2 py-2 sm:px-4 sm:py-3 bg-slate-900/95 border-b border-slate-800/80 backdrop-blur-xl flex items-center justify-between z-20 gap-1.5 sm:gap-2.5 flex-shrink-0">
+      <div className="sticky top-0 px-2 py-2 sm:px-4 sm:py-3 bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800/80 backdrop-blur-xl flex items-center justify-between z-20 gap-1.5 sm:gap-2.5 flex-shrink-0">
         <div
           onClick={() => setIsProfileModalOpen(true)}
           className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1 cursor-pointer group"
@@ -340,7 +340,7 @@ const ChatWindow = ({
           />
 
           <div className="min-w-0 flex-1">
-            <h2 className="text-xs sm:text-sm font-bold text-slate-100 group-hover:text-cyan-400 transition-colors truncate leading-tight">{title}</h2>
+            <h2 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors truncate leading-tight">{title}</h2>
             <p className="text-[10px] sm:text-[11px] text-slate-400 truncate leading-tight">
               {selectedChat.isGroup ? (
                 `${selectedChat.users.length} members`

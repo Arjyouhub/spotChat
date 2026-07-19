@@ -99,9 +99,9 @@ const ChatList = ({
   const myUsername = user?.username || user?.email?.split('@')[0];
 
   return (
-    <div className="w-full md:w-80 lg:w-96 bg-slate-900 border-r border-slate-800 flex flex-col h-full select-none">
+    <div className="w-full md:w-80 lg:w-96 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full select-none transition-colors duration-200">
       {/* User Header */}
-      <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60 backdrop-blur-md">
+      <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-900/60 backdrop-blur-md">
         <div
           onClick={onOpenProfileModal}
           className="flex items-center gap-3 cursor-pointer group hover:opacity-90 transition-opacity min-w-0"
@@ -109,7 +109,7 @@ const ChatList = ({
         >
           <Avatar src={user?.avatar} name={user?.name} isOnline={true} size="md" />
           <div className="min-w-0">
-            <h3 className="text-sm font-bold text-slate-100 truncate group-hover:text-cyan-400 transition-colors">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
               {user?.name}
             </h3>
             <p className="text-[11px] text-cyan-400 font-semibold truncate">
