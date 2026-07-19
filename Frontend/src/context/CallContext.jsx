@@ -76,21 +76,65 @@ export const CallProvider = ({ children }) => {
   const ringtoneAudioRef = useRef(null);
   const callTimerIntervalRef = useRef(null);
 
-  // Web Audio Ringtone Generator
+  const audioCtxRef = useRef(null);
+  const ringtoneIntervalRef = useRef(null);
+
+  // WhatsApp Style Dual-Tone (440Hz + 480Hz) Web Audio Ringtone Synthesizer
   const startRingtone = () => {
     try {
-      if (!ringtoneAudioRef.current) {
-        ringtoneAudioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3');
-        ringtoneAudioRef.current.loop = true;
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
       }
-      ringtoneAudioRef.current.play().catch(() => {});
-    } catch (e) {}
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+
+      const playPulse = () => {
+        if (!audioCtxRef.current) return;
+        const now = ctx.currentTime;
+        
+        // WhatsApp dual tone (440Hz + 480Hz)
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc1.type = 'sine';
+        osc2.type = 'sine';
+        osc1.frequency.setValueAtTime(440, now);
+        osc2.frequency.setValueAtTime(480, now);
+
+        // Smooth 2s ring pulse envelope with 1s pause
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.18, now + 0.05);
+        gain.gain.setValueAtTime(0.18, now + 1.8);
+        gain.gain.linearRampToValueAtTime(0, now + 2.0);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 2.0);
+        osc2.stop(now + 2.0);
+      };
+
+      playPulse();
+      clearInterval(ringtoneIntervalRef.current);
+      ringtoneIntervalRef.current = setInterval(playPulse, 3000);
+    } catch (e) {
+      console.error('Ringtone synth error:', e);
+    }
   };
 
   const stopRingtone = () => {
-    if (ringtoneAudioRef.current) {
-      ringtoneAudioRef.current.pause();
-      ringtoneAudioRef.current.currentTime = 0;
+    clearInterval(ringtoneIntervalRef.current);
+    if (audioCtxRef.current) {
+      try {
+        audioCtxRef.current.close();
+      } catch (e) {}
+      audioCtxRef.current = null;
     }
   };
 
