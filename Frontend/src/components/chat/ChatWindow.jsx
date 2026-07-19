@@ -62,15 +62,28 @@ const ChatWindow = ({
     ? onlineUsers.get(targetUserId)?.lastSeen ?? otherUser?.lastSeen ?? null
     : null;
 
-  // Fetch Message History
+  const messageCacheRef = useRef(new Map());
+
+  // Fetch Message History with 0ms In-Memory Caching & Background Refresh
   useEffect(() => {
     if (!selectedChat) return;
 
-    const fetchMessages = async () => {
+    const chatId = selectedChat._id;
+    const cached = messageCacheRef.current.get(chatId);
+
+    if (cached && cached.length > 0) {
+      setMessages(cached);
+      setLoading(false);
+    } else {
+      setMessages([]);
       setLoading(true);
+    }
+
+    const fetchMessages = async () => {
       try {
-        const { data } = await API.get(`/messages/${selectedChat._id}`);
+        const { data } = await API.get(`/messages/${chatId}`);
         setMessages(data);
+        messageCacheRef.current.set(chatId, data);
       } catch (err) {
         console.error('Error fetching messages:', err);
       } finally {
@@ -81,15 +94,22 @@ const ChatWindow = ({
     fetchMessages();
 
     if (socket) {
-      socket.emit('join_chat', selectedChat._id);
+      socket.emit('join_chat', chatId);
     }
 
     return () => {
       if (socket) {
-        socket.emit('leave_chat', selectedChat._id);
+        socket.emit('leave_chat', chatId);
       }
     };
   }, [selectedChat, socket]);
+
+  // Keep cache synced on message updates
+  useEffect(() => {
+    if (selectedChat?._id && messages.length > 0) {
+      messageCacheRef.current.set(selectedChat._id, messages);
+    }
+  }, [messages, selectedChat]);
 
   // Real-time Socket Event Listeners
   useEffect(() => {
@@ -371,9 +391,11 @@ const ChatWindow = ({
 
       {/* Messages Scroll Area */}
       <div className="flex-1 overflow-y-auto p-4 flex flex-col space-y-2">
-        {loading ? (
-          <div className="flex-1 flex items-center justify-center text-slate-500">
-            <div className="w-6 h-6 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+        {loading && messages.length === 0 ? (
+          <div className="flex-1 flex flex-col justify-end space-y-3 p-2 animate-pulse">
+            <div className="w-48 h-12 bg-slate-800/80 rounded-2xl self-start rounded-tl-none border border-slate-700/50" />
+            <div className="w-64 h-14 bg-cyan-950/40 rounded-2xl self-end rounded-tr-none border border-cyan-800/40" />
+            <div className="w-40 h-10 bg-slate-800/80 rounded-2xl self-start rounded-tl-none border border-slate-700/50" />
           </div>
         ) : messages.length === 0 ? (
           <div className="flex-1 flex items-center justify-center text-slate-500 text-xs italic">
