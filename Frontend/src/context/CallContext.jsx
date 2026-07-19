@@ -116,45 +116,59 @@ export const CallProvider = ({ children }) => {
     }
   }, [receivingCall, isCalling]);
 
+  const [callState, setCallState] = useState('Idle');
+
   useEffect(() => {
     if (!socket) return;
 
     socket.on('incoming_call', ({ from, name, avatar, signal, callType }) => {
+      console.log('[WebRTC] Socket incoming-call received from:', name);
+      console.log('[WebRTC] Offer received');
       setReceivingCall(true);
       setCaller({ id: from, name, avatar });
       setCallerSignal(signal);
       setCallType(callType || 'video');
+      setCallState('Connecting...');
     });
 
     socket.on('call_accepted', async ({ signal }) => {
+      console.log('[WebRTC] Socket call-accepted received');
+      console.log('[WebRTC] Answer received');
       setCallAccepted(true);
       setIsCalling(false);
+      setCallState('Connected');
       if (connectionRef.current) {
         try {
           await connectionRef.current.setRemoteDescription(new RTCSessionDescription(signal));
           applyHDBitrateOptimization(connectionRef.current);
         } catch (e) {
-          console.error('Error setting remote description on call acceptance:', e);
+          console.error('[WebRTC] Error setting remote description on call acceptance:', e);
+          setCallState('Call Failed');
         }
       }
     });
 
     socket.on('ice_candidate', async ({ candidate }) => {
+      console.log('[WebRTC] ICE candidate received:', candidate);
       if (connectionRef.current && candidate) {
         try {
           await connectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
         } catch (e) {
-          console.error('Error adding ICE candidate:', e);
+          console.error('[WebRTC] Error adding ICE candidate:', e);
         }
       }
     });
 
     socket.on('call_rejected', () => {
+      console.log('[WebRTC] Socket call-rejected received');
+      setCallState('Call Ended');
       cleanupCall();
       alert('Call was declined');
     });
 
     socket.on('call_ended', () => {
+      console.log('[WebRTC] Socket call-ended received');
+      setCallState('Call Ended');
       cleanupCall();
     });
 
@@ -170,12 +184,15 @@ export const CallProvider = ({ children }) => {
   const callUser = async (userToCall, type = 'video') => {
     if (!socket || !userToCall) return;
 
+    console.log('[WebRTC] Initiating call to:', userToCall.name, 'Type:', type);
     setCallType(type);
     setIsCalling(true);
     setTargetUser(userToCall);
+    setCallState('Connecting...');
 
     try {
       const currentStream = await navigator.mediaDevices.getUserMedia(getHDConstraints(type, facingMode));
+      console.log('[WebRTC] Media permissions granted');
 
       setStream(currentStream);
       localStreamRef.current = currentStream;
@@ -183,12 +200,30 @@ export const CallProvider = ({ children }) => {
       const peer = new RTCPeerConnection(ICE_SERVERS);
       connectionRef.current = peer;
 
+      peer.oniceconnectionstatechange = () => {
+        console.log('[WebRTC] ICE state:', peer.iceConnectionState);
+        if (peer.iceConnectionState === 'connected') setCallState('Connected');
+        if (peer.iceConnectionState === 'disconnected') setCallState('Reconnecting...');
+        if (peer.iceConnectionState === 'failed') setCallState('Call Failed');
+      };
+
+      peer.onconnectionstatechange = () => {
+        console.log('[WebRTC] Connection state:', peer.connectionState);
+        if (peer.connectionState === 'connected') setCallState('Connected');
+        if (peer.connectionState === 'failed') setCallState('Call Failed');
+      };
+
+      peer.onsignalingstatechange = () => {
+        console.log('[WebRTC] Signaling state:', peer.signalingState);
+      };
+
       currentStream.getTracks().forEach((track) => {
         peer.addTrack(track, currentStream);
       });
 
       peer.onicecandidate = (event) => {
         if (event.candidate) {
+          console.log('[WebRTC] ICE candidate sent:', event.candidate);
           socket.emit('ice_candidate', {
             to: userToCall._id,
             candidate: event.candidate,
@@ -197,6 +232,7 @@ export const CallProvider = ({ children }) => {
       };
 
       peer.ontrack = (event) => {
+        console.log('[WebRTC] Remote track received:', event.track);
         if (event.streams && event.streams[0]) {
           setRemoteStream(event.streams[0]);
         }
@@ -207,6 +243,7 @@ export const CallProvider = ({ children }) => {
         offerToReceiveVideo: type === 'video',
       });
       await peer.setLocalDescription(offer);
+      console.log('[WebRTC] Offer created:', offer);
 
       socket.emit('call_user', {
         userToCall: userToCall._id,
@@ -219,18 +256,10 @@ export const CallProvider = ({ children }) => {
 
       applyHDBitrateOptimization(peer);
     } catch (err) {
-      console.error('Error accessing HD media devices for call:', err);
-      try {
-        const fallbackStream = await navigator.mediaDevices.getUserMedia({
-          video: type === 'video',
-          audio: true,
-        });
-        setStream(fallbackStream);
-        localStreamRef.current = fallbackStream;
-      } catch (fallbackErr) {
-        alert('Could not access microphone/camera. Please check permissions.');
-        cleanupCall();
-      }
+      console.error('[WebRTC] Error accessing media devices for call:', err);
+      setCallState('Call Failed');
+      alert('Could not access microphone/camera. Please check permissions.');
+      cleanupCall();
     }
   };
 
@@ -401,6 +430,7 @@ export const CallProvider = ({ children }) => {
         isMirrored,
         facingMode,
         callDuration,
+        callState,
         callUser,
         answerCall,
         rejectCall,

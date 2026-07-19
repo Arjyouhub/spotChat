@@ -12,26 +12,32 @@ const SearchModal = ({ isOpen, onClose, onChatCreated }) => {
 
   useEffect(() => {
     if (!isOpen) return;
-    searchUsers('');
+    setQuery('');
+    setUsers([]);
   }, [isOpen]);
 
-  const searchUsers = async (searchKeyword) => {
-    setLoading(true);
-    try {
-      const { data } = await API.get(`/users?search=${encodeURIComponent(searchKeyword)}`);
-      setUsers(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
+  useEffect(() => {
+    const clean = query.replace('@', '').trim();
+    if (!clean || clean.length < 2) {
+      setUsers([]);
       setLoading(false);
+      return;
     }
-  };
 
-  const handleSearchChange = (e) => {
-    const val = e.target.value;
-    setQuery(val);
-    searchUsers(val);
-  };
+    setLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const { data } = await API.get(`/users?search=${encodeURIComponent(clean)}`);
+        setUsers(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query]);
 
   const handleSelectUser = async (userId) => {
     try {
@@ -57,15 +63,15 @@ const SearchModal = ({ isOpen, onClose, onChatCreated }) => {
         </button>
 
         <h3 className="text-lg font-bold text-slate-100 mb-1">Find Users</h3>
-        <p className="text-xs text-slate-400 mb-4">Search contacts by @username, name, or email</p>
+        <p className="text-xs text-slate-400 mb-4">Search by username to start a chat</p>
 
         <div className="relative mb-4">
           <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-500" />
           <input
             type="text"
-            placeholder="Type @username, name, or email..."
+            placeholder="Type @username or display name (min 2 chars)..."
             value={query}
-            onChange={handleSearchChange}
+            onChange={(e) => setQuery(e.target.value)}
             className="w-full bg-slate-800/80 border border-slate-700/80 focus:border-blue-500 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none"
           />
         </div>
@@ -73,7 +79,13 @@ const SearchModal = ({ isOpen, onClose, onChatCreated }) => {
         <div className="max-h-72 overflow-y-auto space-y-1.5 pr-1">
           {loading ? (
             <div className="text-center py-8 text-slate-500 text-xs">Searching users...</div>
+          ) : query.trim().length < 2 ? (
+            <div className="text-center py-8 text-slate-500 text-xs italic">
+              Search by username to start a chat. (Type at least 2 characters)
+            </div>
           ) : users.length === 0 ? (
+            <div className="text-center py-8 text-slate-500 text-xs">No matching users found</div>
+          ) : (
             <div className="text-center py-8 text-slate-500 text-xs">No matching users found</div>
           ) : (
             users.map((u) => {

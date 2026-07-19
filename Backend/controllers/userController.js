@@ -5,21 +5,28 @@ const User = require('../models/User');
 // @access  Private
 const searchUsers = async (req, res) => {
   try {
-    const queryStr = req.query.search ? req.query.search.replace('@', '').trim() : '';
+    const rawQuery = req.query.search ? req.query.search.replace('@', '').trim() : '';
 
-    const keyword = queryStr
-      ? {
-          $or: [
-            { username: { $regex: queryStr, $options: 'i' } },
-            { name: { $regex: queryStr, $options: 'i' } },
-            { email: { $regex: queryStr, $options: 'i' } },
-          ],
-        }
-      : {};
+    if (!rawQuery || rawQuery.length < 2) {
+      return res.json([]);
+    }
+
+    const keyword = {
+      $or: [
+        { username: { $regex: rawQuery, $options: 'i' } },
+        { name: { $regex: rawQuery, $options: 'i' } },
+        { email: { $regex: rawQuery, $options: 'i' } },
+      ],
+    };
+
+    const blockedIds = req.user.blockedUsers || [];
 
     const users = await User.find(keyword)
-      .find({ _id: { $ne: req.user._id } })
-      .select('-password');
+      .find({
+        _id: { $ne: req.user._id, $nin: blockedIds },
+      })
+      .select('-password')
+      .limit(20);
 
     res.json(users);
   } catch (error) {

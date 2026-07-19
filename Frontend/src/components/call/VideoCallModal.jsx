@@ -31,6 +31,7 @@ const VideoCallModal = () => {
     isMirrored,
     facingMode,
     callDuration,
+    callState,
     endCall,
     toggleMute,
     toggleCamera,
@@ -78,9 +79,9 @@ const VideoCallModal = () => {
     }
   };
 
-  if (!isCalling && !callAccepted) return null;
-
   const partner = targetUser || caller;
+
+  if (!isCalling && !callAccepted && !receivingCall) return null;
 
   return (
     <div
@@ -97,8 +98,8 @@ const VideoCallModal = () => {
           <div>
             <h3 className="text-sm font-bold text-slate-100">{partner?.name}</h3>
             <p className="text-[11px] text-cyan-400 font-medium flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              {callAccepted ? `Call Connected (${formatTimer(callDuration)})` : `Calling (${callType})...`}
+              <span className={`w-2 h-2 rounded-full ${callAccepted ? 'bg-emerald-500 animate-ping' : 'bg-amber-500 animate-pulse'}`} />
+              {callAccepted ? `Call Connected (${formatTimer(callDuration)})` : callState || `Calling (${callType})...`}
             </p>
           </div>
         </div>
