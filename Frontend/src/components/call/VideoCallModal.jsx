@@ -51,9 +51,6 @@ const VideoCallModal = () => {
     if (myVideoRef.current && stream) {
       myVideoRef.current.srcObject = stream;
     }
-  }, [stream, swapViews]);
-
-  useEffect(() => {
     if (userVideoRef.current && remoteStream) {
       userVideoRef.current.srcObject = remoteStream;
     }
@@ -61,7 +58,7 @@ const VideoCallModal = () => {
       remoteAudioRef.current.srcObject = remoteStream;
       remoteAudioRef.current.play().catch(() => {});
     }
-  }, [remoteStream, swapViews]);
+  }, [stream, remoteStream, callAccepted, swapViews]);
 
   const formatTimer = (sec) => {
     const m = Math.floor(sec / 60);
@@ -127,7 +124,15 @@ const VideoCallModal = () => {
         {/* Main Canvas Stream */}
         {callAccepted && remoteStream ? (
           <video
-            ref={swapViews ? myVideoRef : userVideoRef}
+            ref={(node) => {
+              const targetRef = swapViews ? myVideoRef : userVideoRef;
+              targetRef.current = node;
+              const targetStream = swapViews ? stream : remoteStream;
+              if (node && targetStream && node.srcObject !== targetStream) {
+                node.srcObject = targetStream;
+                node.play().catch((err) => console.warn('Video play warning:', err));
+              }
+            }}
             autoPlay
             playsInline
             muted={swapViews ? isMuted : false}
@@ -158,7 +163,15 @@ const VideoCallModal = () => {
           >
             {callType === 'video' && !isVideoOff ? (
               <video
-                ref={swapViews ? userVideoRef : myVideoRef}
+                ref={(node) => {
+                  const targetRef = swapViews ? userVideoRef : myVideoRef;
+                  targetRef.current = node;
+                  const targetStream = swapViews ? remoteStream : stream;
+                  if (node && targetStream && node.srcObject !== targetStream) {
+                    node.srcObject = targetStream;
+                    node.play().catch((err) => console.warn('PIP video play warning:', err));
+                  }
+                }}
                 autoPlay
                 muted={!swapViews}
                 playsInline
