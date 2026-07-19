@@ -32,7 +32,8 @@ const ChatList = ({
     return typeof found === 'string' ? { _id: found, name: 'User' } : found;
   };
 
-  const filteredChats = chats.filter((chat) => {
+  const safeChats = Array.isArray(chats) ? chats : [];
+  const filteredChats = safeChats.filter((chat) => {
     const isGroup = chat.isGroup;
     if (activeTab === 'direct' && isGroup) return false;
     if (activeTab === 'groups' && !isGroup) return false;

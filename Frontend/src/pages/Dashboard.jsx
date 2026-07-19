@@ -30,9 +30,10 @@ const Dashboard = () => {
   const fetchChats = async () => {
     try {
       const { data } = await API.get('/chats');
-      setChats(data);
+      setChats(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to fetch chats:', err);
+      setChats([]);
     }
   };
 
