@@ -295,7 +295,7 @@ export const CallProvider = ({ children }) => {
       console.log('[WebRTC] Socket incoming-call received from:', name);
       console.log('[WebRTC] Offer received');
       setReceivingCall(true);
-      setCaller({ id: from, name, avatar });
+      setCaller({ _id: from, id: from, name, avatar });
       setCallerSignal(signal);
       setCallType(callType || 'video');
       setCallState('Connecting...');
