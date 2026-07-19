@@ -18,7 +18,12 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+    const defaultSocketUrl =
+      typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+        ? 'https://spotchat-suiv.onrender.com'
+        : 'http://localhost:5000';
+
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || defaultSocketUrl;
     const newSocket = io(socketUrl, {
       auth: { token: user.token },
       transports: ['websocket', 'polling'],
