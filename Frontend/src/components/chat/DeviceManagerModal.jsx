@@ -96,7 +96,7 @@ const DeviceManagerModal = ({ isOpen, onClose }) => {
         <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center gap-3">
           <ShieldCheck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
           <p className="text-xs text-emerald-300 font-medium">
-            End-to-End Encryption active with ECDH P-256 Key Exchange.
+            🔒 Messages and calls are end-to-end encrypted.
           </p>
         </div>
       </div>

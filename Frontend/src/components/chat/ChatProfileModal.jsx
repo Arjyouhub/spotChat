@@ -206,7 +206,7 @@ const ChatProfileModal = ({
             <div>
               <p className="font-bold text-xs">End-to-End Encrypted</p>
               <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
-                Messages and calls are secured with ECDH P-256 and AES-256-GCM encryption. No third party can read them.
+                🔒 Messages and calls are end-to-end encrypted. No one outside of this chat, not even spotChat, can read or listen to them.
               </p>
             </div>
           </div>
