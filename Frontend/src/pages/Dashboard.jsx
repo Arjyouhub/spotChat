@@ -47,7 +47,21 @@ const Dashboard = () => {
     if (!socket) return;
 
     const handleMessageReceived = (newMessage) => {
-      fetchChats();
+      const chatId = newMessage.chat._id || newMessage.chat;
+      setChats((prevChats) => {
+        const chatIndex = prevChats.findIndex((c) => c._id === chatId);
+        if (chatIndex > -1) {
+          const updatedChat = {
+            ...prevChats[chatIndex],
+            latestMessage: newMessage,
+            updatedAt: new Date().toISOString(),
+          };
+          const rest = prevChats.filter((c) => c._id !== chatId);
+          return [updatedChat, ...rest];
+        }
+        fetchChats();
+        return prevChats;
+      });
     };
 
     const handleProfileUpdated = (updatedUser) => {
