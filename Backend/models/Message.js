@@ -26,6 +26,24 @@ const messageSchema = new mongoose.Schema(
       enum: ['image', 'video', 'file', 'audio', null],
       default: null,
     },
+    isCallLog: {
+      type: Boolean,
+      default: false,
+    },
+    callType: {
+      type: String,
+      enum: ['audio', 'video', null],
+      default: null,
+    },
+    callStatus: {
+      type: String,
+      enum: ['completed', 'missed', 'rejected', 'cancelled', null],
+      default: null,
+    },
+    callDuration: {
+      type: Number,
+      default: 0,
+    },
     isViewOnce: {
       type: Boolean,
       default: false,

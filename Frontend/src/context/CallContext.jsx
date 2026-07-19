@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useSocket } from './SocketContext';
 import { useAuth } from './AuthContext';
+import API from '../services/api';
 
 const CallContext = createContext();
 
@@ -76,9 +77,41 @@ export const CallProvider = ({ children }) => {
   const ringtoneAudioRef = useRef(null);
   const ringbackAudioRef = useRef(null);
   const callTimerIntervalRef = useRef(null);
+  const activeChatIdRef = useRef(null);
 
   const audioCtxRef = useRef(null);
   const ringtoneIntervalRef = useRef(null);
+
+  const saveCallLogToChat = async (status, durationSec = 0, targetChatId = null) => {
+    try {
+      const chatId = targetChatId || activeChatIdRef.current;
+      if (!chatId) return;
+
+      const mins = Math.floor(durationSec / 60);
+      const secs = durationSec % 60;
+      const durationStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+
+      const contentText =
+        status === 'completed'
+          ? `${callType === 'video' ? '📹 Video call' : '📞 Voice call'} (${durationStr})`
+          : `${callType === 'video' ? '📹 Missed video call' : '📞 Missed voice call'}`;
+
+      const { data } = await API.post('/messages', {
+        chatId,
+        content: contentText,
+        isCallLog: true,
+        callType,
+        callStatus: status,
+        callDuration: durationSec,
+      });
+
+      if (socket) {
+        socket.emit('new_message', data);
+      }
+    } catch (e) {
+      console.error('Error saving call log:', e);
+    }
+  };
 
   // Preload Pleasant Melodic Ringtone & Classic Ringback Audio
   useEffect(() => {
@@ -318,8 +351,9 @@ export const CallProvider = ({ children }) => {
     };
   }, [socket]);
 
-  const callUser = async (userToCall, type = 'video') => {
+  const callUser = async (userToCall, type = 'video', chatId = null) => {
     if (!socket || !userToCall) return;
+    if (chatId) activeChatIdRef.current = chatId;
 
     console.log('[WebRTC] Initiating call to:', userToCall.name, 'Type:', type);
     setCallType(type);
@@ -454,6 +488,7 @@ export const CallProvider = ({ children }) => {
     if (socket && caller) {
       socket.emit('reject_call', { to: caller.id });
     }
+    saveCallLogToChat('rejected', 0);
     cleanupCall();
   };
 
@@ -462,6 +497,7 @@ export const CallProvider = ({ children }) => {
     if (socket && peerId) {
       socket.emit('end_call', { to: peerId });
     }
+    saveCallLogToChat(callDuration > 0 ? 'completed' : 'cancelled', callDuration);
     cleanupCall();
   };
 

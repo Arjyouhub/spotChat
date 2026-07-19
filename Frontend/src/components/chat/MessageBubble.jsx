@@ -20,6 +20,8 @@ import {
   Pause,
   Mic,
   AlertCircle,
+  Phone,
+  Video as VideoIcon,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import API from '../../services/api';
@@ -232,7 +234,34 @@ const MessageBubble = ({
           </p>
         )}
 
-        {message.deletedForEveryone ? (
+        {message.isCallLog ? (
+          <div className="flex items-center gap-3 py-1 px-1 min-w-[190px]">
+            <div
+              className={`w-9 h-9 rounded-2xl flex items-center justify-center border shadow-sm ${
+                message.callStatus === 'completed'
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                  : 'bg-rose-500/15 border-rose-500/30 text-rose-400'
+              }`}
+            >
+              {message.callType === 'video' ? <VideoIcon className="w-4 h-4" /> : <Phone className="w-4 h-4" />}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-bold text-slate-100">
+                  {message.callType === 'video' ? 'Video call' : 'Voice call'}
+                </p>
+                {message.callStatus !== 'completed' && (
+                  <span className="text-[9px] bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded-full font-bold uppercase">
+                    {message.callStatus || 'Missed'}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
+                {message.content || 'Call log'}
+              </p>
+            </div>
+          </div>
+        ) : message.deletedForEveryone ? (
           <p className="text-xs italic text-slate-300 flex items-center gap-1.5 py-0.5">
             <Trash2 className="w-3.5 h-3.5 opacity-70" /> This message was deleted
           </p>

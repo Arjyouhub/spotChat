@@ -363,14 +363,14 @@ const ChatWindow = ({
           {!selectedChat.isGroup && otherUser && (
             <>
               <button
-                onClick={() => callUser(otherUser, 'audio')}
+                onClick={() => callUser(otherUser, 'audio', selectedChat._id)}
                 className="p-1.5 sm:p-2 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-cyan-400 hover:text-cyan-300 transition-colors border border-slate-700/50"
                 title="Start Audio Call"
               >
                 <Phone className="w-4 h-4" />
               </button>
               <button
-                onClick={() => callUser(otherUser, 'video')}
+                onClick={() => callUser(otherUser, 'video', selectedChat._id)}
                 className="p-1.5 sm:p-2 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-blue-400 hover:text-blue-300 transition-colors border border-slate-700/50"
                 title="Start Video Call"
               >
