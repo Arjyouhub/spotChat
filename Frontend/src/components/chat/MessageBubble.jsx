@@ -22,6 +22,11 @@ import {
   AlertCircle,
   Phone,
   Video as VideoIcon,
+  PhoneIncoming,
+  PhoneOutgoing,
+  PhoneMissed,
+  ArrowUpRight,
+  ArrowDownLeft,
 } from 'lucide-react';
 import Avatar from '../common/Avatar';
 import API from '../../services/api';
@@ -235,29 +240,41 @@ const MessageBubble = ({
         )}
 
         {message.isCallLog ? (
-          <div className="flex items-center gap-3 py-1 px-1 min-w-[190px]">
+          <div className="flex items-center gap-3 py-1.5 px-1 min-w-[210px]">
             <div
-              className={`w-9 h-9 rounded-2xl flex items-center justify-center border shadow-sm ${
+              className={`w-10 h-10 rounded-2xl flex items-center justify-center border shadow-sm ${
                 message.callStatus === 'completed'
                   ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
                   : 'bg-rose-500/15 border-rose-500/30 text-rose-400'
               }`}
             >
-              {message.callType === 'video' ? <VideoIcon className="w-4 h-4" /> : <Phone className="w-4 h-4" />}
+              {message.callType === 'video' ? (
+                <VideoIcon className="w-5 h-5" />
+              ) : isSender ? (
+                <PhoneOutgoing className="w-5 h-5" />
+              ) : message.callStatus === 'completed' ? (
+                <PhoneIncoming className="w-5 h-5" />
+              ) : (
+                <PhoneMissed className="w-5 h-5" />
+              )}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="text-xs font-bold text-slate-100">
-                  {message.callType === 'video' ? 'Video call' : 'Voice call'}
-                </p>
-                {message.callStatus !== 'completed' && (
-                  <span className="text-[9px] bg-rose-500/20 text-rose-300 border border-rose-500/30 px-1.5 py-0.5 rounded-full font-bold uppercase">
-                    {message.callStatus || 'Missed'}
-                  </span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                {isSender ? (
+                  <ArrowUpRight className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                ) : (
+                  <ArrowDownLeft className={`w-3.5 h-3.5 flex-shrink-0 ${message.callStatus === 'completed' ? 'text-cyan-400' : 'text-rose-400'}`} />
                 )}
+                <p className="text-xs font-bold text-slate-100 truncate">
+                  {isSender
+                    ? `Outgoing ${message.callType === 'video' ? 'video' : 'voice'} call`
+                    : message.callStatus === 'completed'
+                    ? `Incoming ${message.callType === 'video' ? 'video' : 'voice'} call`
+                    : `Missed ${message.callType === 'video' ? 'video' : 'voice'} call`}
+                </p>
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5 font-medium">
-                {message.content || 'Call log'}
+              <p className="text-[11px] text-slate-400 mt-0.5 font-medium truncate">
+                {message.content}
               </p>
             </div>
           </div>
