@@ -1,0 +1,41 @@
+export const darkColors = {
+  background: '#0B141A',
+  surface: '#111B21',
+  surfaceSecondary: '#202C33',
+  headerBg: '#202C33',
+  text: '#E9EDEF',
+  textSecondary: '#8696A0',
+  textMuted: '#667781',
+  primary: '#00A884',
+  primaryDark: '#008069',
+  accent: '#00A884',
+  userBubble: '#005C4B',
+  otherBubble: '#202C33',
+  border: '#222D34',
+  danger: '#F15C6D',
+  warning: '#F7B928',
+  icon: '#8696A0',
+  activeIcon: '#00A884',
+};
+
+export const lightColors = {
+  background: '#FFFFFF',
+  surface: '#F0F2F5',
+  surfaceSecondary: '#E9EDEF',
+  headerBg: '#008069',
+  text: '#111B21',
+  textSecondary: '#667781',
+  textMuted: '#8696A0',
+  primary: '#008069',
+  primaryDark: '#006653',
+  accent: '#00A884',
+  userBubble: '#E7FFDB',
+  otherBubble: '#FFFFFF',
+  border: '#E9EDEF',
+  danger: '#EA0038',
+  warning: '#F7B928',
+  icon: '#54656F',
+  activeIcon: '#008069',
+};
+
+export type ThemeColors = typeof darkColors;
