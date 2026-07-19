@@ -94,6 +94,7 @@ const markViewOnceAsViewed = async (req, res) => {
 
     if (message.isViewOnce) {
       message.isViewed = true;
+      message.mediaUrl = ''; // Erase media URL permanently so it cannot be reopened or downloaded
       if (!message.viewedBy.includes(req.user._id)) {
         message.viewedBy.push(req.user._id);
       }

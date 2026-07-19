@@ -3,6 +3,7 @@ import { Video, Phone, ArrowLeft, MoreVertical, MessageSquare } from 'lucide-rea
 import Avatar from '../common/Avatar';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
+import ChatProfileModal from './ChatProfileModal';
 import API from '../../services/api';
 import { useSocket } from '../../context/SocketContext';
 import { useCall } from '../../context/CallContext';
@@ -12,6 +13,7 @@ const ChatWindow = ({
   currentUser,
   onBack,
   onUpdateDisappearing,
+  onDeleteChat,
 }) => {
   const { socket, onlineUsers } = useSocket();
   const { callUser } = useCall();
@@ -19,6 +21,7 @@ const ChatWindow = ({
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [typingUsers, setTypingUsers] = useState(new Set());
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const messagesEndRef = useRef(null);
 
   const getOtherUser = (chat, currentUserId, msgs = []) => {
@@ -217,6 +220,15 @@ const ChatWindow = ({
     }
   };
 
+  const handleClearChat = async () => {
+    try {
+      await API.delete(`/chats/clear/${selectedChat._id}`);
+      setMessages([]);
+    } catch (err) {
+      console.error('Error clearing chat:', err);
+    }
+  };
+
   if (!selectedChat) {
     return (
       <div className="flex-1 hidden md:flex flex-col items-center justify-center bg-slate-950 text-slate-500 p-8">
@@ -245,9 +257,16 @@ const ChatWindow = ({
     <div className="flex-1 flex flex-col h-full bg-slate-950 relative overflow-hidden">
       {/* Sticky Header */}
       <div className="sticky top-0 px-2 py-2 sm:px-4 sm:py-3 bg-slate-900/95 border-b border-slate-800/80 backdrop-blur-xl flex items-center justify-between z-20 gap-1.5 sm:gap-2.5 flex-shrink-0">
-        <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1">
+        <div
+          onClick={() => setIsProfileModalOpen(true)}
+          className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-1 cursor-pointer group"
+          title="Open Profile & Chat Details"
+        >
           <button
-            onClick={onBack}
+            onClick={(e) => {
+              e.stopPropagation();
+              onBack();
+            }}
             className="md:hidden p-1 sm:p-1.5 hover:bg-slate-800 rounded-lg text-slate-300 flex-shrink-0"
             title="Back to chats"
           >
@@ -259,11 +278,11 @@ const ChatWindow = ({
             name={title}
             isOnline={!selectedChat.isGroup ? isTargetOnline : undefined}
             size="sm"
-            className="flex-shrink-0"
+            className="flex-shrink-0 group-hover:scale-105 transition-transform"
           />
 
           <div className="min-w-0 flex-1">
-            <h2 className="text-xs sm:text-sm font-bold text-slate-100 truncate leading-tight">{title}</h2>
+            <h2 className="text-xs sm:text-sm font-bold text-slate-100 group-hover:text-cyan-400 transition-colors truncate leading-tight">{title}</h2>
             <p className="text-[10px] sm:text-[11px] text-slate-400 truncate leading-tight">
               {selectedChat.isGroup ? (
                 `${selectedChat.users.length} members`
@@ -281,25 +300,35 @@ const ChatWindow = ({
           </div>
         </div>
 
-        {/* Action Buttons (Video Call, Audio Call) */}
-        {!selectedChat.isGroup && otherUser && (
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <button
-              onClick={() => callUser(otherUser, 'audio')}
-              className="p-1.5 sm:p-2 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-cyan-400 hover:text-cyan-300 transition-colors border border-slate-700/50"
-              title="Start Audio Call"
-            >
-              <Phone className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => callUser(otherUser, 'video')}
-              className="p-1.5 sm:p-2 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-blue-400 hover:text-blue-300 transition-colors border border-slate-700/50"
-              title="Start Video Call"
-            >
-              <Video className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+        {/* Action Buttons (Audio Call, Video Call, Three-dot Menu) */}
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {!selectedChat.isGroup && otherUser && (
+            <>
+              <button
+                onClick={() => callUser(otherUser, 'audio')}
+                className="p-1.5 sm:p-2 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-cyan-400 hover:text-cyan-300 transition-colors border border-slate-700/50"
+                title="Start Audio Call"
+              >
+                <Phone className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => callUser(otherUser, 'video')}
+                className="p-1.5 sm:p-2 bg-slate-800/80 hover:bg-slate-800 rounded-xl text-blue-400 hover:text-blue-300 transition-colors border border-slate-700/50"
+                title="Start Video Call"
+              >
+                <Video className="w-4 h-4" />
+              </button>
+            </>
+          )}
+
+          <button
+            onClick={() => setIsProfileModalOpen(true)}
+            className="p-1.5 sm:p-2 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-colors"
+            title="Chat Info & Settings"
+          >
+            <MoreVertical className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Messages Scroll Area */}
@@ -345,6 +374,17 @@ const ChatWindow = ({
         selectedChat={selectedChat}
         onSendMessage={handleSendMessage}
         onUpdateDisappearing={onUpdateDisappearing}
+      />
+
+      {/* WhatsApp Style Chat & Profile Details Drawer */}
+      <ChatProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        chat={selectedChat}
+        currentUser={currentUser}
+        messages={messages}
+        onClearChat={handleClearChat}
+        onDeleteChat={onDeleteChat}
       />
     </div>
   );

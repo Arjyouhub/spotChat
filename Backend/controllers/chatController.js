@@ -204,6 +204,42 @@ const updateDisappearingTimer = async (req, res) => {
   }
 };
 
+// @desc    Clear chat history for current user
+// @route   DELETE /api/chats/clear/:chatId
+// @access  Private
+const clearChat = async (req, res) => {
+  try {
+    const Message = require('../models/Message');
+    const { chatId } = req.params;
+
+    await Message.updateMany(
+      { chat: chatId },
+      { $addToSet: { deletedFor: req.user._id } }
+    );
+
+    res.json({ message: 'Chat history cleared successfully', chatId });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete chat permanently
+// @route   DELETE /api/chats/:chatId
+// @access  Private
+const deleteChat = async (req, res) => {
+  try {
+    const Message = require('../models/Message');
+    const { chatId } = req.params;
+
+    await Message.deleteMany({ chat: chatId });
+    await Chat.findByIdAndDelete(chatId);
+
+    res.json({ message: 'Chat deleted permanently', chatId });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   accessChat,
   fetchChats,
@@ -212,4 +248,6 @@ module.exports = {
   addToGroup,
   removeFromGroup,
   updateDisappearingTimer,
+  clearChat,
+  deleteChat,
 };

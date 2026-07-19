@@ -129,6 +129,16 @@ const Dashboard = () => {
     }
   };
 
+  const handleDeleteChat = async (chatId) => {
+    try {
+      await API.delete(`/chats/${chatId}`);
+      setChats((prev) => prev.filter((c) => c._id !== chatId));
+      setSelectedChat(null);
+    } catch (err) {
+      console.error('Error deleting chat:', err);
+    }
+  };
+
   return (
     <div className="flex h-[100dvh] w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans relative">
       {/* Sidebar Chat List */}
@@ -160,6 +170,7 @@ const Dashboard = () => {
           currentUser={user}
           onBack={() => setSelectedChat(null)}
           onUpdateDisappearing={handleUpdateDisappearing}
+          onDeleteChat={() => handleDeleteChat(selectedChat._id)}
         />
       </div>
 
