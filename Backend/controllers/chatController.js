@@ -188,6 +188,7 @@ const removeFromGroup = async (req, res) => {
 // @access  Private
 const updateDisappearingTimer = async (req, res) => {
   try {
+    const Message = require('../models/Message');
     const { chatId, duration } = req.body; // duration in seconds (0 = disabled)
 
     const updated = await Chat.findByIdAndUpdate(
@@ -197,6 +198,15 @@ const updateDisappearingTimer = async (req, res) => {
     )
       .populate('users', '-password')
       .populate('groupAdmin', '-password');
+
+    // Snapchat Style: When disappearing timer is activated (> 0), set expireAt on all existing messages
+    if (duration > 0) {
+      const expireAt = new Date(Date.now() + duration * 1000);
+      await Message.updateMany(
+        { chat: chatId, expireAt: { $exists: false } },
+        { $set: { expireAt: expireAt } }
+      );
+    }
 
     res.json(updated);
   } catch (error) {
