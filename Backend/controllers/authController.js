@@ -90,12 +90,13 @@ const authUser = async (req, res) => {
       return res.status(400).json({ message: 'Please provide email and password' });
     }
 
-    // Allow logging in with either email or @username
-    const query = email.includes('@')
-      ? { email: email.toLowerCase() }
-      : { username: email.toLowerCase().replace('@', '') };
+    const cleanInput = email.toLowerCase().trim();
+    const cleanUsername = cleanInput.replace('@', '');
 
-    const user = await User.findOne(query).select('+password');
+    // Allow logging in with either email or @username
+    const user = await User.findOne({
+      $or: [{ email: cleanInput }, { username: cleanUsername }],
+    }).select('+password');
 
     if (user && (await bcrypt.compare(password, user.password))) {
       user.isOnline = true;

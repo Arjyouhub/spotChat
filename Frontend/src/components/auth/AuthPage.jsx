@@ -124,15 +124,15 @@ const AuthPage = () => {
 
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-              Email Address
+              {isLogin ? 'Email Address or @Username' : 'Email Address'}
             </label>
             <div className="relative">
               <Mail className="w-5 h-5 absolute left-3.5 top-3 text-slate-500" />
               <input
-                type="email"
+                type={isLogin ? 'text' : 'email'}
                 name="email"
                 required
-                placeholder="you@example.com"
+                placeholder={isLogin ? 'you@example.com or @username' : 'you@example.com'}
                 value={formData.email}
                 onChange={handleChange}
                 className="w-full bg-slate-800/80 border border-slate-700/80 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl pl-11 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all"
