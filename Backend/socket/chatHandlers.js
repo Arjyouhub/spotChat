@@ -74,6 +74,20 @@ module.exports = (io, socket, userSocketMap) => {
     io.to(chatId).emit('message_deleted_everyone', { chatId, messageId });
   });
 
+  // Telegram Style: Complete Chat Deletion Sync for both users
+  socket.on('delete_chat', ({ chatId, recipientIds }) => {
+    if (recipientIds && Array.isArray(recipientIds)) {
+      recipientIds.forEach((uid) => {
+        io.to(uid.toString()).emit('chat_deleted', { chatId });
+      });
+    }
+    io.to(chatId).emit('chat_deleted', { chatId });
+  });
+
+  socket.on('clear_chat', ({ chatId }) => {
+    io.to(chatId).emit('chat_cleared', { chatId });
+  });
+
   // Profile Update Sync
   socket.on('update_profile', (profileData) => {
     io.emit('user_profile_updated', {

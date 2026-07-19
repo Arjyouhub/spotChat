@@ -103,12 +103,19 @@ const Dashboard = () => {
       });
     };
 
+    const handleChatDeleted = ({ chatId }) => {
+      setChats((prev) => prev.filter((c) => c._id !== chatId));
+      setSelectedChat((current) => (current?._id === chatId ? null : current));
+    };
+
     socket.on('message_received', handleMessageReceived);
     socket.on('user_profile_updated', handleProfileUpdated);
+    socket.on('chat_deleted', handleChatDeleted);
 
     return () => {
       socket.off('message_received', handleMessageReceived);
       socket.off('user_profile_updated', handleProfileUpdated);
+      socket.off('chat_deleted', handleChatDeleted);
     };
   }, [socket]);
 
@@ -131,9 +138,16 @@ const Dashboard = () => {
 
   const handleDeleteChat = async (chatId) => {
     try {
+      const targetChat = chats.find((c) => c._id === chatId);
+      const recipientIds = targetChat ? targetChat.users.map((u) => u._id || u) : [];
+
       await API.delete(`/chats/${chatId}`);
       setChats((prev) => prev.filter((c) => c._id !== chatId));
       setSelectedChat(null);
+
+      if (socket) {
+        socket.emit('delete_chat', { chatId, recipientIds });
+      }
     } catch (err) {
       console.error('Error deleting chat:', err);
     }
