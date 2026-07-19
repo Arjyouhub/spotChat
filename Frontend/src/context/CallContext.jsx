@@ -79,8 +79,44 @@ export const CallProvider = ({ children }) => {
   const audioCtxRef = useRef(null);
   const ringtoneIntervalRef = useRef(null);
 
-  // WhatsApp Style Dual-Tone (440Hz + 480Hz) Web Audio Ringtone Synthesizer
+  // Preload Royalty-Free Classic Telephone Ringback Audio
+  useEffect(() => {
+    ringtoneAudioRef.current = new Audio('/assets/sounds/ringback.mp3');
+    ringtoneAudioRef.current.loop = true;
+    ringtoneAudioRef.current.preload = 'auto';
+
+    return () => {
+      if (ringtoneAudioRef.current) {
+        ringtoneAudioRef.current.pause();
+        ringtoneAudioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Classic Telephone Ringback Sound Controller (HTML5 Audio API + Web Audio Fallback)
   const startRingtone = () => {
+    // Prevent overlapping audio
+    stopRingtone();
+
+    try {
+      if (ringtoneAudioRef.current) {
+        ringtoneAudioRef.current.currentTime = 0;
+        const playPromise = ringtoneAudioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => {
+            console.warn('[Audio] HTML5 ringback play restricted, starting Web Audio fallback:', err);
+            startWebAudioSynth();
+          });
+        }
+      } else {
+        startWebAudioSynth();
+      }
+    } catch (e) {
+      startWebAudioSynth();
+    }
+  };
+
+  const startWebAudioSynth = () => {
     try {
       if (!audioCtxRef.current) {
         audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
@@ -93,8 +129,7 @@ export const CallProvider = ({ children }) => {
       const playPulse = () => {
         if (!audioCtxRef.current) return;
         const now = ctx.currentTime;
-        
-        // WhatsApp dual tone (440Hz + 480Hz)
+
         const osc1 = ctx.createOscillator();
         const osc2 = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -104,10 +139,9 @@ export const CallProvider = ({ children }) => {
         osc1.frequency.setValueAtTime(440, now);
         osc2.frequency.setValueAtTime(480, now);
 
-        // Smooth 2s ring pulse envelope with 1s pause
         gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(0.18, now + 0.05);
-        gain.gain.setValueAtTime(0.18, now + 1.8);
+        gain.gain.linearRampToValueAtTime(0.15, now + 0.05);
+        gain.gain.setValueAtTime(0.15, now + 1.8);
         gain.gain.linearRampToValueAtTime(0, now + 2.0);
 
         osc1.connect(gain);
@@ -122,13 +156,19 @@ export const CallProvider = ({ children }) => {
 
       playPulse();
       clearInterval(ringtoneIntervalRef.current);
-      ringtoneIntervalRef.current = setInterval(playPulse, 3000);
+      ringtoneIntervalRef.current = setInterval(playPulse, 4000);
     } catch (e) {
-      console.error('Ringtone synth error:', e);
+      console.error('Web Audio Synth error:', e);
     }
   };
 
   const stopRingtone = () => {
+    if (ringtoneAudioRef.current) {
+      try {
+        ringtoneAudioRef.current.pause();
+        ringtoneAudioRef.current.currentTime = 0;
+      } catch (e) {}
+    }
     clearInterval(ringtoneIntervalRef.current);
     if (audioCtxRef.current) {
       try {
