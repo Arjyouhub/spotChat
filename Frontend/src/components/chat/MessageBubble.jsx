@@ -377,6 +377,10 @@ const MessageBubble = ({
             ) : (
               <img src={message.mediaUrl} alt="View once" className="max-h-[75vh] object-contain rounded-2xl" />
             )}
+          </div>
+        </div>
+      )}
+
       {/* Single Message Actions & Delete Modal Popup */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 select-none">

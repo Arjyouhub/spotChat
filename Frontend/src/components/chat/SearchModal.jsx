@@ -86,8 +86,6 @@ const SearchModal = ({ isOpen, onClose, onChatCreated }) => {
           ) : users.length === 0 ? (
             <div className="text-center py-8 text-slate-500 text-xs">No matching users found</div>
           ) : (
-            <div className="text-center py-8 text-slate-500 text-xs">No matching users found</div>
-          ) : (
             users.map((u) => {
               const isOnline = onlineUsers.get(u._id.toString())?.isOnline ?? u.isOnline;
               const handle = u.username || u.email.split('@')[0];
