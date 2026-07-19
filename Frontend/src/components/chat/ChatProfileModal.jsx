@@ -44,6 +44,7 @@ const ChatProfileModal = ({
   const [reportReason, setReportReason] = useState('');
   const [showReportInput, setShowReportInput] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showE2EEInfoModal, setShowE2EEInfoModal] = useState(false);
 
   if (!isOpen || !chat) return null;
 
@@ -201,12 +202,18 @@ const ChatProfileModal = ({
           )}
 
           {/* End-to-End Encryption Notice */}
-          <div className="p-3.5 bg-cyan-950/20 border border-cyan-500/30 rounded-2xl flex items-start gap-3 text-cyan-300">
-            <Lock className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-bold text-xs">End-to-End Encrypted</p>
-              <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">
-                🔒 Messages and calls are end-to-end encrypted. No one outside of this chat, not even spotChat, can read or listen to them.
+          <div
+            onClick={() => setShowE2EEInfoModal(true)}
+            className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center gap-3 text-emerald-300 cursor-pointer hover:bg-emerald-500/15 transition-all group"
+            title="Tap to learn more about End-to-End Encryption"
+          >
+            <Lock className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-emerald-300 flex items-center justify-between">
+                <span>🔒 Messages and calls are end-to-end encrypted.</span>
+              </p>
+              <p className="text-[10px] text-emerald-400/80 underline mt-0.5 group-hover:text-emerald-300 transition-colors">
+                Tap to learn more
               </p>
             </div>
           </div>
@@ -429,6 +436,34 @@ const ChatProfileModal = ({
                 Cancel
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* End-to-End Encryption Information Modal */}
+      {showE2EEInfoModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 select-none">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 text-center">
+            <div className="w-14 h-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400 shadow-xl">
+              <Lock className="w-7 h-7" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-slate-100">End-to-End Encrypted</h3>
+              <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                Your personal messages and calls are secured with end-to-end encryption.
+              </p>
+              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                No one outside of this chat, not even spotChat, can read your messages or listen to your calls. Your privacy is protected at all times.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowE2EEInfoModal(false)}
+              className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-emerald-600/30"
+            >
+              OK, Got it
+            </button>
           </div>
         </div>
       )}
