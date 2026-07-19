@@ -43,6 +43,7 @@ const ChatProfileModal = ({
   const [showEnlargedAvatar, setShowEnlargedAvatar] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [showReportInput, setShowReportInput] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   if (!isOpen || !chat) return null;
 
@@ -323,16 +324,11 @@ const ChatProfileModal = ({
           </button>
 
           <button
-            onClick={() => {
-              if (confirm('Are you sure you want to clear all message history in this chat?')) {
-                onClearChat();
-                onClose();
-              }
-            }}
-            className="w-full flex items-center gap-2.5 p-3 bg-slate-800/50 hover:bg-rose-500/10 hover:border-rose-500/30 rounded-xl border border-slate-700/50 text-slate-200 hover:text-rose-400 transition-colors"
+            onClick={() => setShowDeleteModal(true)}
+            className="w-full flex items-center justify-center gap-2.5 p-3 bg-rose-500/10 hover:bg-rose-500/20 hover:border-rose-500/40 rounded-xl border border-rose-500/30 text-rose-400 font-bold transition-all shadow-sm"
           >
-            <Trash2 className="w-4 h-4 text-rose-400" />
-            <span>Clear Chat History</span>
+            <Trash2 className="w-4 h-4" />
+            <span>Delete Chat</span>
           </button>
 
           {!isGroup && partner && (
@@ -364,7 +360,7 @@ const ChatProfileModal = ({
               ) : (
                 <button
                   onClick={() => setShowReportInput(true)}
-                  className="w-full flex items-center gap-2.5 p-3 bg-slate-800/50 hover:bg-slate-800 rounded-xl border border-slate-700/50 text-rose-400 transition-colors"
+                  className="w-full flex items-center gap-2.5 p-3 bg-slate-800/50 hover:bg-slate-800 rounded-xl border border-slate-700/50 text-slate-400 hover:text-slate-200 transition-colors"
                 >
                   <Flag className="w-4 h-4" />
                   <span>Report User</span>
@@ -385,6 +381,55 @@ const ChatProfileModal = ({
             <X className="w-6 h-6" />
           </button>
           <img src={avatarSrc} alt={title} className="max-w-full max-h-[80vh] rounded-3xl shadow-2xl object-contain" />
+        </div>
+      )}
+
+      {/* Delete Chat Options Modal Popup (Delete for Me vs Delete for Everyone) */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 select-none">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-4 text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-400">
+              <Trash2 className="w-6 h-6" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-slate-100">Delete Chat?</h3>
+              <p className="text-xs text-slate-400 mt-1">
+                Choose how you want to delete this conversation with <span className="font-semibold text-slate-200">{title}</span>.
+              </p>
+            </div>
+
+            <div className="space-y-2 pt-2">
+              <button
+                onClick={() => {
+                  if (onDeleteChat) onDeleteChat();
+                  setShowDeleteModal(false);
+                  onClose();
+                }}
+                className="w-full py-2.5 px-4 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-rose-600/30 transition-all flex items-center justify-center gap-2"
+              >
+                <span>Delete for Everyone</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  if (onClearChat) onClearChat();
+                  setShowDeleteModal(false);
+                  onClose();
+                }}
+                className="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition-all flex items-center justify-center gap-2"
+              >
+                <span>Delete for Me</span>
+              </button>
+
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="w-full py-2 text-xs text-slate-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
