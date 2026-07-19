@@ -57,13 +57,18 @@ const sendMessage = async (req, res) => {
 // @access  Private
 const allMessages = async (req, res) => {
   try {
-    const messages = await Message.find({
+    let messages = await Message.find({
       chat: req.params.chatId,
       deletedFor: { $ne: req.user._id },
     })
       .populate('sender', 'name avatar email')
       .populate('chat')
       .sort({ createdAt: 1 });
+
+    messages = await User.populate(messages, {
+      path: 'chat.users',
+      select: 'name username avatar email isOnline lastSeen',
+    });
 
     // Mark messages as read by current user
     await Message.updateMany(

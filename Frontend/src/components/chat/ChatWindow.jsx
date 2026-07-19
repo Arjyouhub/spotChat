@@ -21,18 +21,33 @@ const ChatWindow = ({
   const [typingUsers, setTypingUsers] = useState(new Set());
   const messagesEndRef = useRef(null);
 
-  const getOtherUser = (chat, currentUserId) => {
+  const getOtherUser = (chat, currentUserId, msgs = []) => {
     if (!chat || chat.isGroup || !chat.users) return null;
     const myId = (currentUserId?._id || currentUserId || '').toString();
     const found = chat.users.find((u) => {
       const uid = typeof u === 'string' ? u : (u?._id || u || '').toString();
       return uid !== myId;
     });
-    if (!found) return null;
-    return typeof found === 'string' ? { _id: found, name: 'User' } : found;
+
+    if (found && typeof found === 'object' && (found.name || found.username)) {
+      return found;
+    }
+
+    // Fallback to message history sender
+    const msgSender = msgs.find((m) => {
+      const sid = (m.sender?._id || m.sender || '').toString();
+      return sid && sid !== myId && typeof m.sender === 'object' && m.sender.name;
+    })?.sender;
+
+    if (msgSender) return msgSender;
+
+    if (found) {
+      return typeof found === 'string' ? { _id: found, name: 'User' } : found;
+    }
+    return null;
   };
 
-  const otherUser = getOtherUser(selectedChat, currentUser);
+  const otherUser = getOtherUser(selectedChat, currentUser, messages);
   const targetUserId = otherUser?._id ? otherUser._id.toString() : null;
 
   // Real-time online status check
