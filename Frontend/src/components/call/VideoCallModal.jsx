@@ -13,6 +13,9 @@ import {
   SwitchCamera,
   ScreenShare,
   User,
+  AlertTriangle,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 import { useCall } from '../../context/CallContext';
 import Avatar from '../common/Avatar';
@@ -33,6 +36,7 @@ const VideoCallModal = () => {
     facingMode,
     callDuration,
     callState,
+    netQuality,
     endCall,
     toggleMute,
     toggleCamera,
@@ -104,18 +108,42 @@ const VideoCallModal = () => {
           <Avatar src={partner?.avatar} name={partner?.name} size="sm" />
           <div className="min-w-0">
             <h3 className="text-xs sm:text-sm font-bold text-slate-100 truncate">{partner?.name}</h3>
-            <p className="text-[10px] sm:text-[11px] text-emerald-400 font-semibold flex items-center gap-1.5 truncate">
-              <span className={`w-2 h-2 rounded-full ${callAccepted ? 'bg-emerald-500 animate-ping' : 'bg-amber-500 animate-pulse'}`} />
-              <span>{callAccepted ? `Connected (${formatTimer(callDuration)})` : callState || `Calling (${callType})...`}</span>
+            <p className="text-[10px] sm:text-[11px] font-semibold flex items-center gap-1.5 truncate">
+              {netQuality === 'poor' || callState.includes('Poor') ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                  <span className="text-rose-400 font-bold flex items-center gap-1">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Connection Poor - Reconnecting...</span>
+                  </span>
+                </>
+              ) : callAccepted ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                  <span className="text-emerald-400 font-bold">Connected ({formatTimer(callDuration)})</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span className="text-amber-400">{callState || `Calling (${callType})...`}</span>
+                </>
+              )}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <div className="hidden md:flex items-center gap-1 px-2.5 py-1 bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 rounded-full text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>HD Ultra</span>
-          </div>
+          {netQuality === 'poor' ? (
+            <div className="flex items-center gap-1 px-2.5 py-1 bg-rose-500/20 border border-rose-500/40 text-rose-300 rounded-full text-xs font-bold animate-pulse">
+              <WifiOff className="w-3.5 h-3.5" />
+              <span>Poor Network</span>
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center gap-1 px-2.5 py-1 bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 rounded-full text-xs font-semibold">
+              <Wifi className="w-3.5 h-3.5 text-emerald-400" />
+              <span>HD Ultra</span>
+            </div>
+          )}
 
           <button
             onClick={toggleFullscreen}

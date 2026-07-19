@@ -71,6 +71,7 @@ export const CallProvider = ({ children }) => {
   const [isMirrored, setIsMirrored] = useState(true);
   const [facingMode, setFacingMode] = useState('user');
   const [callDuration, setCallDuration] = useState(0);
+  const [netQuality, setNetQuality] = useState('good'); // 'good' | 'poor' | 'reconnecting'
 
   const connectionRef = useRef(null);
   const localStreamRef = useRef(null);
@@ -81,6 +82,28 @@ export const CallProvider = ({ children }) => {
 
   const audioCtxRef = useRef(null);
   const ringtoneIntervalRef = useRef(null);
+
+  // Global Audio Autoplay Unlock Listener
+  useEffect(() => {
+    const unlockAudio = () => {
+      if (ringtoneAudioRef.current) {
+        ringtoneAudioRef.current.load();
+      }
+      if (ringbackAudioRef.current) {
+        ringbackAudioRef.current.load();
+      }
+    };
+
+    window.addEventListener('click', unlockAudio, { once: true });
+    window.addEventListener('touchstart', unlockAudio, { once: true });
+    window.addEventListener('keydown', unlockAudio, { once: true });
+
+    return () => {
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('touchstart', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
+    };
+  }, []);
 
   const saveCallLogToChat = async (status, durationSec = 0, targetChatId = null) => {
     try {
@@ -373,15 +396,30 @@ export const CallProvider = ({ children }) => {
 
       peer.oniceconnectionstatechange = () => {
         console.log('[WebRTC] ICE state:', peer.iceConnectionState);
-        if (peer.iceConnectionState === 'connected') setCallState('Connected');
-        if (peer.iceConnectionState === 'disconnected') setCallState('Reconnecting...');
-        if (peer.iceConnectionState === 'failed') setCallState('Call Failed');
+        if (peer.iceConnectionState === 'connected' || peer.iceConnectionState === 'completed') {
+          setCallState('Connected');
+          setNetQuality('good');
+        } else if (peer.iceConnectionState === 'disconnected') {
+          setCallState('Connection Poor - Reconnecting...');
+          setNetQuality('poor');
+        } else if (peer.iceConnectionState === 'failed') {
+          setCallState('Call Failed - Poor Network');
+          setNetQuality('poor');
+        } else if (peer.iceConnectionState === 'checking') {
+          setCallState('Connecting...');
+          setNetQuality('reconnecting');
+        }
       };
 
       peer.onconnectionstatechange = () => {
         console.log('[WebRTC] Connection state:', peer.connectionState);
-        if (peer.connectionState === 'connected') setCallState('Connected');
-        if (peer.connectionState === 'failed') setCallState('Call Failed');
+        if (peer.connectionState === 'connected') {
+          setCallState('Connected');
+          setNetQuality('good');
+        } else if (peer.connectionState === 'disconnected' || peer.connectionState === 'failed') {
+          setCallState('Connection Poor');
+          setNetQuality('poor');
+        }
       };
 
       peer.onsignalingstatechange = () => {
@@ -611,6 +649,7 @@ export const CallProvider = ({ children }) => {
         facingMode,
         callDuration,
         callState,
+        netQuality,
         callUser,
         answerCall,
         rejectCall,
